@@ -6,4 +6,5 @@ export interface FileFiltersValue {
   type: string;
   period: "ALL" | "7D" | "30D" | "90D";
   summaryKeyword: string;
+  aiStatus: string;
 }

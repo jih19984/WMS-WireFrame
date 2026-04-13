@@ -3,28 +3,31 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] backdrop-blur-md",
+  "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.16em]",
   {
     variants: {
       variant: {
-        default: "border border-primary/10 bg-primary/14 text-primary",
-        secondary: "border border-white/35 bg-white/48 text-secondary-foreground",
-        outline: "border border-white/40 bg-white/38 text-muted-foreground",
-        success: "border border-emerald-200/40 bg-emerald-400/14 text-emerald-700",
-        warning: "border border-amber-200/45 bg-amber-400/18 text-amber-700",
-        destructive: "border border-red-200/45 bg-red-400/14 text-red-700",
+        default: "border-[#c9d8ff] bg-[#f0f8ff] text-[#3859f9]",
+        secondary: "border-border bg-[#f3eee5] text-secondary-foreground",
+        outline: "border-dashed border-border bg-white text-muted-foreground",
+        success: "border-[#54bf7b] bg-[#dff8e8] text-[#02492a]",
+        warning: "border-[#e5b13c] bg-[#fff1cb] text-[#7a4d00]",
+        destructive: "border-[#ec8f96] bg-[#ffe1e4] text-[#8b2430]",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
+  extends
+    React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {}
 
 export function Badge({ className, variant, ...props }: BadgeProps) {
-  return <span className={cn(badgeVariants({ variant }), className)} {...props} />;
+  return (
+    <span className={cn(badgeVariants({ variant }), className)} {...props} />
+  );
 }

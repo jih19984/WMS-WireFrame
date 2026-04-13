@@ -1,4 +1,5 @@
 import { users } from "@/app/_common/service/mock-db";
+import type { WorklogStatus } from "@/app/_common/types/api.types";
 import type { Worklog } from "@/app/worklog/_types/worklog.types";
 import { AiSummaryCard } from "@/app/worklog/_components/AiSummaryCard";
 import { DependencyGraph } from "@/app/worklog/_components/DependencyGraph";
@@ -9,9 +10,20 @@ import { StatusHistory } from "@/app/worklog/_components/StatusHistory";
 import { StatusTransition } from "@/app/worklog/_components/StatusTransition";
 import { TagList } from "@/app/worklog/_components/TagList";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDate, formatDateTime, formatHours } from "@/lib/utils";
 
-export function WorklogDetail({ worklog }: { worklog: Worklog }) {
+export function WorklogDetail({
+  worklog,
+  canTransition,
+  onTransition,
+  transitionNotice,
+}: {
+  worklog: Worklog;
+  canTransition: boolean;
+  onTransition: (nextStatus: WorklogStatus, reason: string) => Promise<void>;
+  transitionNotice?: string;
+}) {
   const author = users.find((user) => user.id === worklog.authorId);
 
   return (
@@ -26,14 +38,18 @@ export function WorklogDetail({ worklog }: { worklog: Worklog }) {
                   <ImportanceBadge importance={worklog.importance} />
                 </div>
                 <CardTitle>{worklog.title}</CardTitle>
-                <CardDescription>{worklog.requestContent}</CardDescription>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {worklog.requestContent || "상위 요청/지시 내용이 아직 입력되지 않았습니다."}
+                </p>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             <section>
               <p className="text-sm font-medium">업무 내용</p>
-              <p className="mt-2 text-sm leading-7 text-muted-foreground">{worklog.workContent}</p>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                {worklog.workContent}
+              </p>
             </section>
             <section>
               <p className="text-sm font-medium">메타 태그</p>
@@ -60,7 +76,7 @@ export function WorklogDetail({ worklog }: { worklog: Worklog }) {
             <CardTitle>선행 업무</CardTitle>
           </CardHeader>
           <CardContent>
-            <DependencyGraph dependencyIds={worklog.dependencies} />
+            <DependencyGraph dependencyIds={worklog.dependencyIds} />
           </CardContent>
         </Card>
       </div>
@@ -74,7 +90,7 @@ export function WorklogDetail({ worklog }: { worklog: Worklog }) {
             {author ? (
               <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-4">
                 <Avatar className="size-11">
-                  <AvatarImage src={author.avatar} alt={author.name} />
+                  <AvatarImage src={author.profileImage} alt={author.name} />
                   <AvatarFallback>{author.name.slice(0, 1)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -84,9 +100,19 @@ export function WorklogDetail({ worklog }: { worklog: Worklog }) {
               </div>
             ) : null}
             <div className="grid gap-3">
-              <InfoRow label="지시일" value={worklog.instructionDate} />
-              <InfoRow label="마감일" value={worklog.dueDate} />
-              <InfoRow label="실제 업무시간" value={`${worklog.actualHours}h`} />
+              <InfoRow label="지시일" value={formatDate(worklog.instructionDate)} />
+              <InfoRow label="마감일" value={formatDate(worklog.dueDate)} />
+              <InfoRow label="실제 업무시간" value={formatHours(worklog.actualHours)} />
+              <InfoRow
+                label="완료일"
+                value={worklog.completionDate ? formatDate(worklog.completionDate) : "-"}
+              />
+              <InfoRow
+                label="AI 수동 편집"
+                value={worklog.aiSummaryEdited ? "사용자 수정 완료" : "자동 생성 유지"}
+              />
+              <InfoRow label="생성일" value={formatDateTime(worklog.createdAt)} />
+              <InfoRow label="수정일" value={formatDateTime(worklog.updatedAt)} />
             </div>
           </CardContent>
         </Card>
@@ -95,8 +121,17 @@ export function WorklogDetail({ worklog }: { worklog: Worklog }) {
           <CardHeader>
             <CardTitle>상태 변경</CardTitle>
           </CardHeader>
-          <CardContent>
-            <StatusTransition status={worklog.status} />
+          <CardContent className="space-y-3">
+            <StatusTransition
+              worklog={worklog}
+              canTransition={canTransition}
+              onTransition={onTransition}
+            />
+            {transitionNotice ? (
+              <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
+                {transitionNotice}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -117,7 +152,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3 text-sm">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium">{value}</span>
+      <span className="text-right font-medium">{value}</span>
     </div>
   );
 }

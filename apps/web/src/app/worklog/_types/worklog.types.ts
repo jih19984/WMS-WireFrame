@@ -13,5 +13,7 @@ export interface WorklogFormValues {
   dueDate: string;
   teamId: number;
   authorId: number;
-  dependencies: number[];
+  dependencyIds: number[];
+  attachmentNames: string[];
+  aiRegenerate: boolean;
 }

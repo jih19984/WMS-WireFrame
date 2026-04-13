@@ -1,5 +1,10 @@
+import { useMemo, useState } from "react";
 import type { WorklogStatus } from "@/app/_common/types/api.types";
+import { worklogs } from "@/app/_common/service/mock-db";
+import type { Worklog } from "@/app/worklog/_types/worklog.types";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { getWorklogStatusLabel } from "@/lib/utils";
 
 const nextMap: Record<WorklogStatus, WorklogStatus[]> = {
   PENDING: ["IN_PROGRESS"],
@@ -10,20 +15,64 @@ const nextMap: Record<WorklogStatus, WorklogStatus[]> = {
 };
 
 export function StatusTransition({
-  status,
+  worklog,
+  canTransition,
+  onTransition,
 }: {
-  status: WorklogStatus;
+  worklog: Worklog;
+  canTransition: boolean;
+  onTransition: (nextStatus: WorklogStatus, reason: string) => Promise<void>;
 }) {
+  const [reason, setReason] = useState("");
+  const dependencyWarning = useMemo(() => {
+    return worklog.dependencyIds.some((dependencyId) => {
+      const dependency = worklogs.find((item) => item.id === dependencyId);
+      return dependency && dependency.status !== "DONE";
+    });
+  }, [worklog.dependencyIds]);
+
+  if (!canTransition) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        현재 역할에서는 이 업무 상태를 변경할 수 없습니다.
+      </p>
+    );
+  }
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {nextMap[status].length === 0 ? (
+    <div className="space-y-3">
+      {nextMap[worklog.status].length === 0 ? (
         <p className="text-sm text-muted-foreground">최종 상태입니다.</p>
       ) : (
-        nextMap[status].map((nextStatus) => (
-          <Button key={nextStatus} size="sm" variant="outline" type="button">
-            {nextStatus}로 변경
-          </Button>
-        ))
+        <>
+          {dependencyWarning && worklog.status !== "IN_PROGRESS" ? (
+            <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
+              선행 업무가 아직 완료되지 않았습니다. 진행중으로 전환할 경우 경고 메시지만
+              표시되고 차단되지는 않습니다.
+            </div>
+          ) : null}
+          <Textarea
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="상태 변경 사유를 기록하세요."
+          />
+          <div className="flex flex-wrap gap-2">
+            {nextMap[worklog.status].map((nextStatus) => (
+              <Button
+                key={nextStatus}
+                size="sm"
+                variant="outline"
+                type="button"
+                onClick={async () => {
+                  await onTransition(nextStatus, reason);
+                  setReason("");
+                }}
+              >
+                {getWorklogStatusLabel(nextStatus)}로 변경
+              </Button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

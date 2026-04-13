@@ -1,210 +1,444 @@
-import { AlertTriangle, BarChart3, CheckCircle2, Clock3, Users } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  Search,
+  Users,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { PageHeader } from "@/app/_common/components/PageHeader";
 import { StatCard } from "@/app/_common/components/StatCard";
 import { useAuth } from "@/app/_common/hooks/useAuth";
-import { departments, notifications, teams, users, worklogs } from "@/app/_common/service/mock-db";
+import { useDepartment } from "@/app/department/_hooks/useDepartment";
+import { useNotification } from "@/app/notification/_hooks/useNotification";
+import { useTeam } from "@/app/team/_hooks/useTeam";
+import { useUser } from "@/app/user/_hooks/useUser";
+import { useWorklog } from "@/app/worklog/_hooks/useWorklog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  formatDate,
+  formatHours,
+  getAiStatusLabel,
+  getImportanceLabel,
+  getRoleLabel,
+  getWorklogStatusLabel,
+} from "@/lib/utils";
+
+const statusVariantMap = {
+  DONE: "success",
+  ON_HOLD: "warning",
+  IN_PROGRESS: "default",
+  PENDING: "outline",
+  CANCELLED: "destructive",
+} as const;
+
+const importanceVariantMap = {
+  URGENT: "destructive",
+  HIGH: "warning",
+  NORMAL: "secondary",
+  LOW: "outline",
+} as const;
+
+function daysUntil(date: string) {
+  const diff = new Date(date).getTime() - new Date("2026-04-13T00:00:00").getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const { worklogs } = useWorklog();
+  const { notifications, unreadCount } = useNotification();
+  const { users } = useUser();
+  const { teams } = useTeam();
+  const { departments } = useDepartment();
+
   if (!user) return null;
 
-  const visibleWorklogs =
-    user.role === "DIRECTOR"
-      ? worklogs
-      : user.role === "DEPT_HEAD"
-        ? worklogs.filter(
-            (worklog) =>
-              teams.find((team) => team.id === worklog.teamId)?.departmentId === user.departmentId
-          )
-        : user.role === "TEAM_LEAD"
-          ? worklogs.filter((worklog) => user.teamIds.includes(worklog.teamId))
-          : worklogs.filter((worklog) => worklog.authorId === user.id);
+  const isAdmin = user.role === "DIRECTOR" || user.role === "DEPT_HEAD";
+  const isTeamLead = user.role === "TEAM_LEAD";
+  const now = new Date("2026-04-13T00:00:00");
+
+  const overdueWorklogs = worklogs.filter(
+    (worklog) =>
+      worklog.status !== "DONE" &&
+      worklog.status !== "CANCELLED" &&
+      new Date(worklog.dueDate) < now,
+  );
+  const dueSoonWorklogs = worklogs.filter((worklog) => {
+    const dueDays = daysUntil(worklog.dueDate);
+    return (
+      worklog.status !== "DONE" &&
+      worklog.status !== "CANCELLED" &&
+      dueDays >= 0 &&
+      dueDays <= (isAdmin ? 3 : 7)
+    );
+  });
+  const inProgressWorklogs = worklogs.filter(
+    (worklog) => worklog.status === "IN_PROGRESS",
+  );
+  const recentCompletedWorklogs = worklogs
+    .filter((worklog) => worklog.status === "DONE")
+    .slice(0, 4);
+  const totalHours = worklogs.reduce((sum, worklog) => sum + worklog.actualHours, 0);
+  const aiFailedCount = worklogs.filter((worklog) => worklog.aiStatus === "FAILED").length;
 
   const statusData = [
-    { name: "진행중", value: visibleWorklogs.filter((worklog) => worklog.status === "IN_PROGRESS").length },
-    { name: "대기", value: visibleWorklogs.filter((worklog) => worklog.status === "PENDING").length },
-    { name: "완료", value: visibleWorklogs.filter((worklog) => worklog.status === "DONE").length },
-    { name: "보류", value: visibleWorklogs.filter((worklog) => worklog.status === "ON_HOLD").length },
+    {
+      name: "진행중",
+      value: inProgressWorklogs.length,
+      fill: "#3bd3fd",
+    },
+    {
+      name: "대기",
+      value: worklogs.filter((worklog) => worklog.status === "PENDING").length,
+      fill: "#fbbd41",
+    },
+    {
+      name: "완료",
+      value: recentCompletedWorklogs.length,
+      fill: "#84e7a5",
+    },
+    {
+      name: "보류",
+      value: worklogs.filter((worklog) => worklog.status === "ON_HOLD").length,
+      fill: "#c1b0ff",
+    },
   ];
 
-  const alerts = notifications.filter((notification) => !notification.isRead);
+  const departmentWorkload = departments.map((department) => {
+    const departmentTeams = teams.filter(
+      (team) => team.departmentId === department.id,
+    );
+    const departmentUsers = users.filter(
+      (member) => member.departmentId === department.id,
+    );
+    const departmentWorklogs = worklogs.filter((worklog) =>
+      departmentTeams.some((team) => team.id === worklog.teamId),
+    );
+
+    return {
+      id: department.id,
+      name: department.name,
+      inProgress: departmentWorklogs.filter(
+        (worklog) => worklog.status === "IN_PROGRESS",
+      ).length,
+      totalHours: departmentWorklogs.reduce(
+        (sum, worklog) => sum + worklog.actualHours,
+        0,
+      ),
+      members: departmentUsers.length,
+    };
+  });
+
+  const teamMemberSummary = isTeamLead
+    ? users
+        .filter((member) =>
+          member.teamIds.some((teamId) => user.teamIds.includes(teamId)),
+        )
+        .map((member) => {
+          const memberWorklogs = worklogs.filter((worklog) => worklog.authorId === member.id);
+          return {
+            id: member.id,
+            name: member.name,
+            title: member.title,
+            inProgress: memberWorklogs.filter(
+              (worklog) => worklog.status === "IN_PROGRESS",
+            ).length,
+            overdue: memberWorklogs.filter(
+              (worklog) =>
+                worklog.status !== "DONE" &&
+                worklog.status !== "CANCELLED" &&
+                new Date(worklog.dueDate) < now,
+            ).length,
+          };
+        })
+    : [];
 
   return (
-    <>
+    <div className="flex flex-col gap-6 pb-12">
       <PageHeader
-        title={`${user.name}님, 오늘도 반갑습니다`}
-        description="역할 범위에 맞는 업무 현황과 알림, AI 처리 상태를 한 화면에서 확인할 수 있습니다."
+        eyebrow={getRoleLabel(user.role)}
+        title={`${user.name}님, 오늘의 AX-WMS 현황입니다`}
+        description={
+          isAdmin
+            ? "조직 전반의 업무 집계와 부하, 마감 이슈를 빠르게 파악하는 관리자 대시보드입니다."
+            : "내 업무와 마감, AI 처리 상태를 우선순위 중심으로 확인하는 개인 대시보드입니다."
+        }
         actions={
           <>
-            <Badge variant="outline">{user.role}</Badge>
-            <Button>새 업무 등록</Button>
+            <Button variant="outline" onClick={() => navigate("/search")}>
+              <Search className="mr-1 size-4" /> 시맨틱 검색
+            </Button>
+            <Button onClick={() => navigate("/worklog/create")}>
+              새 업무 등록 <ArrowRight className="ml-1 size-4" />
+            </Button>
           </>
         }
       />
 
-      <section className="grid gap-4 lg:grid-cols-4">
-        <StatCard
-          label="Open Worklogs"
-          value={visibleWorklogs.length}
-          hint="현재 접근 가능한 업무 수"
-          icon={BarChart3}
-        />
-        <StatCard
-          label="Overdue"
-          value={visibleWorklogs.filter((worklog) => new Date(worklog.dueDate) < new Date()).length}
-          hint="마감일 경과 업무"
-          icon={AlertTriangle}
-          tone="warning"
-        />
-        <StatCard
-          label="AI Failed"
-          value={visibleWorklogs.filter((worklog) => worklog.aiStatus === "FAILED").length}
-          hint="AI 처리 실패 상태"
-          icon={Clock3}
-          tone="destructive"
-        />
-        <StatCard
-          label="Members"
-          value={users.filter((item) => item.status === "ACTIVE").length}
-          hint="현재 재직 인원"
-          icon={Users}
-          tone="success"
-        />
-      </section>
+      {isAdmin ? (
+        <>
+          <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="가시 범위 업무"
+              value={worklogs.length}
+              hint="권한 범위 내 전체 업무"
+              icon={BarChart3}
+              tone="default"
+            />
+            <StatCard
+              label="마감 임박/지연"
+              value={dueSoonWorklogs.length + overdueWorklogs.length}
+              hint="D-3 이내 또는 지연 업무"
+              icon={AlertTriangle}
+              tone={overdueWorklogs.length > 0 ? "destructive" : "warning"}
+            />
+            <StatCard
+              label="AI 실패"
+              value={aiFailedCount}
+              hint="재시도가 필요한 AI 처리"
+              icon={Clock3}
+              tone={aiFailedCount > 0 ? "warning" : "default"}
+            />
+            <StatCard
+              label="미확인 알림"
+              value={unreadCount}
+              hint="긴급/부하/의존성 알림"
+              icon={Users}
+              tone={unreadCount > 0 ? "warning" : "default"}
+            />
+          </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>업무 상태 분포</CardTitle>
-            <CardDescription>역할 범위 내 업무 상태를 막대 차트로 요약합니다.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={statusData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
-                <Tooltip cursor={{ fill: "#eef2ff" }} />
-                <Bar dataKey="value" fill="#4f46e5" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          <section className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>업무 상태 분포</CardTitle>
+              </CardHeader>
+              <CardContent className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={statusData} barCategoryGap={30}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={12} />
+                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
+                    <Tooltip cursor={{ fill: "var(--muted)" }} />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                      {statusData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>마감 임박 및 알림</CardTitle>
-            <CardDescription>읽지 않은 알림과 최근 업무 흐름을 빠르게 확인합니다.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {alerts.map((alert) => {
-              const relatedWorklog = alert.referenceId
-                ? worklogs.find((worklog) => worklog.id === alert.referenceId)
-                : undefined;
-              const relatedTeam = relatedWorklog
-                ? teams.find((team) => team.id === relatedWorklog.teamId)
-                : undefined;
-              const relatedDepartment = relatedTeam
-                ? departments.find((department) => department.id === relatedTeam.departmentId)
-                : undefined;
-
-              return (
-                <div key={alert.id} className="rounded-lg border border-border bg-muted/40 px-4 py-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-medium">{alert.title}</p>
-                        {user.role === "DIRECTOR" && relatedDepartment ? (
-                          <Badge variant="outline">{relatedDepartment.name}</Badge>
-                        ) : null}
+            <Card>
+              <CardHeader>
+                <CardTitle>마감 임박 및 지연</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[...overdueWorklogs, ...dueSoonWorklogs].slice(0, 5).map((worklog) => (
+                  <div key={worklog.id} className="rounded-xl border border-border bg-card p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{worklog.title}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {teams.find((team) => team.id === worklog.teamId)?.name} / {formatDate(worklog.dueDate)}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{alert.content}</p>
+                      <Badge variant={overdueWorklogs.some((item) => item.id === worklog.id) ? "destructive" : "warning"}>
+                        {overdueWorklogs.some((item) => item.id === worklog.id)
+                          ? "지연"
+                          : `D-${daysUntil(worklog.dueDate)}`}
+                      </Badge>
                     </div>
-                    <Badge>{alert.type}</Badge>
                   </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      </section>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>최근 업무</CardTitle>
-            <CardDescription>생성일과 AI 상태를 함께 보여주는 카드형 업무 리스트입니다.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {visibleWorklogs.map((worklog) => (
-              <div key={worklog.id} className="rounded-xl border border-border bg-card p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+          <section className="grid gap-6 lg:grid-cols-[1.25fr_0.95fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>부서별 업무 부하</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {departmentWorkload.map((department) => (
+                  <div key={department.id} className="rounded-xl border border-border bg-card p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{department.name}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          구성원 {department.members}명 / 진행중 업무 {department.inProgress}건
+                        </p>
+                      </div>
                       <Badge
                         variant={
-                          worklog.status === "DONE"
-                            ? "success"
-                            : worklog.status === "ON_HOLD"
-                              ? "warning"
-                              : "default"
+                          department.inProgress >= 3 || department.totalHours >= 12
+                            ? "warning"
+                            : "outline"
                         }
                       >
-                        {worklog.status}
-                      </Badge>
-                      <Badge
-                        variant={
-                          worklog.importance === "URGENT"
-                            ? "destructive"
-                            : worklog.importance === "HIGH"
-                              ? "warning"
-                              : "outline"
-                        }
-                      >
-                        {worklog.importance}
+                        {formatHours(department.totalHours)}
                       </Badge>
                     </div>
-                    <p className="font-medium">{worklog.title}</p>
-                    <p className="text-sm text-muted-foreground">{worklog.aiSummary}</p>
                   </div>
-                  <div className="text-right text-xs text-muted-foreground">
-                    <p>{formatDate(worklog.updatedAt)}</p>
-                    <p className="mt-1 inline-flex items-center gap-1">
-                      <CheckCircle2 className="size-3.5" />
-                      AI {worklog.aiStatus}
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>최근 알림</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {notifications.slice(0, 4).map((notification) => (
+                  <div key={notification.id} className="rounded-xl border border-border bg-card p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{notification.title}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{notification.content}</p>
+                      </div>
+                      {!notification.isRead ? <Badge variant="warning">읽지 않음</Badge> : null}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+        </>
+      ) : (
+        <>
+          <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="진행중 업무"
+              value={inProgressWorklogs.length}
+              hint="우선순위 순으로 처리 중인 업무"
+              icon={BarChart3}
+              tone="default"
+            />
+            <StatCard
+              label="마감 예정"
+              value={dueSoonWorklogs.length}
+              hint="D-7 이내 미완료 업무"
+              icon={AlertTriangle}
+              tone={dueSoonWorklogs.length > 0 ? "warning" : "default"}
+            />
+            <StatCard
+              label="최근 완료"
+              value={recentCompletedWorklogs.length}
+              hint="최근 마감 완료 업무"
+              icon={CheckCircle2}
+              tone="success"
+            />
+            <StatCard
+              label="누적 업무시간"
+              value={formatHours(totalHours)}
+              hint="현재 가시 범위 내 업무시간 합계"
+              icon={Clock3}
+              tone="default"
+            />
+          </section>
+
+          <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <Card>
+              <CardHeader>
+                <CardTitle>진행중 업무</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {inProgressWorklogs.map((worklog) => (
+                  <div key={worklog.id} className="rounded-xl border border-border bg-card p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={statusVariantMap[worklog.status]}>
+                            {getWorklogStatusLabel(worklog.status)}
+                          </Badge>
+                          <Badge variant={importanceVariantMap[worklog.importance]}>
+                            {getImportanceLabel(worklog.importance)}
+                          </Badge>
+                        </div>
+                        <p className="mt-3 font-medium">{worklog.title}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {worklog.aiSummary}
+                        </p>
+                      </div>
+                      <div className="text-right text-xs text-muted-foreground">
+                        <p>마감 {formatDate(worklog.dueDate)}</p>
+                        <p className="mt-1">AI {getAiStatusLabel(worklog.aiStatus)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>최근 완료 및 알림</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {recentCompletedWorklogs.map((worklog) => (
+                  <div key={worklog.id} className="rounded-xl border border-border bg-card p-4">
+                    <p className="font-medium">{worklog.title}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      완료일 {worklog.completionDate ? formatDate(worklog.completionDate) : "-"}
                     </p>
                   </div>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>조직 현황</CardTitle>
-            <CardDescription>부서와 팀 수, 활성 프로젝트를 간단히 요약합니다.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {departments.map((department) => (
-              <div key={department.id} className="rounded-xl border border-border bg-muted/30 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{department.name}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{department.description}</p>
+                ))}
+                {notifications.slice(0, 2).map((notification) => (
+                  <div key={notification.id} className="rounded-xl border border-border bg-card p-4">
+                    <p className="font-medium">{notification.title}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{notification.content}</p>
                   </div>
-                  <Badge variant="secondary">{department.activeProjects} 프로젝트</Badge>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </section>
-    </>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+
+          {isTeamLead ? (
+            <section>
+              <Card>
+                <CardHeader>
+                  <CardTitle>팀원 업무 현황 요약</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-3 md:grid-cols-2">
+                  {teamMemberSummary.map((member) => (
+                    <div key={member.id} className="rounded-xl border border-border bg-card p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{member.name}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">{member.title}</p>
+                        </div>
+                        <Badge
+                          variant={member.overdue > 0 ? "destructive" : "outline"}
+                        >
+                          진행중 {member.inProgress}건
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </section>
+          ) : null}
+        </>
+      )}
+    </div>
   );
 }

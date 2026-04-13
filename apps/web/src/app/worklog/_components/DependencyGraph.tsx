@@ -1,5 +1,6 @@
 import { worklogs } from "@/app/_common/service/mock-db";
 import { Badge } from "@/components/ui/badge";
+import { getWorklogStatusLabel } from "@/lib/utils";
 
 export function DependencyGraph({ dependencyIds }: { dependencyIds: number[] }) {
   const dependencies = worklogs.filter((worklog) => dependencyIds.includes(worklog.id));
@@ -16,8 +17,11 @@ export function DependencyGraph({ dependencyIds }: { dependencyIds: number[] }) 
             <div>
               <p className="font-medium">{dependency.title}</p>
               <p className="mt-1 text-sm text-muted-foreground">{dependency.aiSummary}</p>
+              <p className="mt-2 text-xs text-muted-foreground">마감일 {dependency.dueDate}</p>
             </div>
-            <Badge>{dependency.status}</Badge>
+            <Badge variant={dependency.status === "DONE" ? "success" : dependency.status === "ON_HOLD" ? "warning" : "outline"}>
+              {getWorklogStatusLabel(dependency.status)}
+            </Badge>
           </div>
         </div>
       ))}

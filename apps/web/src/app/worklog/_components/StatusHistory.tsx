@@ -1,20 +1,37 @@
+import { users } from "@/app/_common/service/mock-db";
 import type { Worklog } from "@/app/worklog/_types/worklog.types";
+import { formatDateTime, getWorklogStatusLabel } from "@/lib/utils";
 
 export function StatusHistory({ worklog }: { worklog: Worklog }) {
-  const items = [
-    { label: "생성", value: worklog.createdAt },
-    { label: "최근 수정", value: worklog.updatedAt },
-    ...(worklog.completionDate ? [{ label: "완료", value: worklog.completionDate }] : []),
-  ];
-
   return (
     <div className="space-y-3">
-      {items.map((item) => (
-        <div key={item.label} className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3 text-sm">
-          <span className="text-muted-foreground">{item.label}</span>
-          <span className="font-medium">{item.value}</span>
+      {worklog.statusHistory.length === 0 ? (
+        <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          상태 변경 이력이 없습니다.
         </div>
-      ))}
+      ) : (
+        worklog.statusHistory.map((history) => (
+          <div
+            key={history.id}
+            className="rounded-lg border border-dashed border-border bg-muted/20 px-4 py-3 text-sm"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="font-medium">
+                {history.previousStatus
+                  ? `${getWorklogStatusLabel(history.previousStatus)} → ${getWorklogStatusLabel(history.newStatus)}`
+                  : `${getWorklogStatusLabel(history.newStatus)} 등록`}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {formatDateTime(history.changedAt)}
+              </span>
+            </div>
+            <p className="mt-2 text-muted-foreground">
+              변경자: {users.find((user) => user.id === history.changedBy)?.name ?? "-"}
+            </p>
+            <p className="mt-1 text-muted-foreground">사유: {history.reason}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 }

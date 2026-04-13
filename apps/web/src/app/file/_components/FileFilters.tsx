@@ -1,6 +1,7 @@
 import type { FileFiltersValue } from "@/app/file/_types/file.types";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { getAiStatusLabel } from "@/lib/utils";
 
 export function FileFilters({
   value,
@@ -12,7 +13,7 @@ export function FileFilters({
   fileTypes: string[];
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-[180px_180px_1fr]">
+    <div className="grid gap-3 md:grid-cols-[180px_180px_180px_1fr]">
       <Select
         value={value.type}
         options={[{ label: "전체 형식", value: "ALL" }, ...fileTypes.map((type) => ({ label: type, value: type }))]}
@@ -32,6 +33,17 @@ export function FileFilters({
             period: event.target.value as FileFiltersValue["period"],
           })
         }
+      />
+      <Select
+        value={value.aiStatus}
+        options={[
+          { label: "전체 AI 상태", value: "ALL" },
+          { label: getAiStatusLabel("PENDING"), value: "PENDING" },
+          { label: getAiStatusLabel("PROCESSING"), value: "PROCESSING" },
+          { label: getAiStatusLabel("DONE"), value: "DONE" },
+          { label: getAiStatusLabel("FAILED"), value: "FAILED" },
+        ]}
+        onChange={(event) => onChange({ ...value, aiStatus: event.target.value })}
       />
       <Input
         value={value.summaryKeyword}

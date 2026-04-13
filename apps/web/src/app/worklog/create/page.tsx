@@ -14,6 +14,7 @@ export default function WorklogCreatePage() {
         <CardContent className="pt-5">
           <WorklogForm
             submitLabel="업무 생성"
+            currentWorklogId={undefined}
             onSubmit={async (values) => {
               const created = await worklogService.create(values);
               navigate(`/worklog/detail/${created.id}`);

@@ -11,7 +11,7 @@ export interface AuthUser {
   primaryTeamId: number;
   teamIds: number[];
   title: string;
-  avatar: string;
+  profileImage: string;
 }
 
 const STORAGE_KEY = "ax-wms-auth-user";
@@ -22,7 +22,11 @@ function loadInitialState(): AuthUser | null {
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as AuthUser;
+    const parsed = JSON.parse(raw) as AuthUser & { avatar?: string };
+    return {
+      ...parsed,
+      profileImage: parsed.profileImage ?? parsed.avatar ?? "",
+    };
   } catch {
     return null;
   }
@@ -55,7 +59,7 @@ export function loginAsUser(email: string) {
     primaryTeamId: match.primaryTeamId,
     teamIds: match.teamIds,
     title: match.title,
-    avatar: match.avatar,
+    profileImage: match.profileImage,
   };
   if (typeof window !== "undefined") {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser));

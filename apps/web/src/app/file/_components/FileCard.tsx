@@ -5,7 +5,7 @@ import type { FileItem } from "@/app/file/_types/file.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getAiStatusLabel } from "@/lib/utils";
 
 export function FileCard({
   file,
@@ -28,7 +28,7 @@ export function FileCard({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <div>
-              <p className="font-medium">{file.name}</p>
+              <p className="font-medium">{file.originalName}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <span>{file.type}</span>
                 <span>•</span>
@@ -38,7 +38,7 @@ export function FileCard({
               </div>
             </div>
             <div className="rounded-lg bg-muted/40 px-3 py-2 text-sm leading-6 text-muted-foreground">
-              {file.aiSummary}
+              {file.summaryPreview}
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <span className="text-muted-foreground">소속 업무일지</span>
@@ -50,9 +50,10 @@ export function FileCard({
                 <span className="text-muted-foreground">연결 없음</span>
               )}
             </div>
+            <p className="text-xs text-muted-foreground">저장 경로: {file.storedPath}</p>
           </div>
           <div className="flex flex-col items-start gap-3 lg:items-end">
-            <Badge variant={statusVariant}>{file.aiStatus}</Badge>
+            <Badge variant={statusVariant}>{getAiStatusLabel(file.aiStatus)}</Badge>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" type="button">
                 <Download className="size-4" />

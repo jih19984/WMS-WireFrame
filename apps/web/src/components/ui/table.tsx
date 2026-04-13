@@ -20,14 +20,22 @@ export function TableBody({
 }
 
 export function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn("border-b border-border transition-colors hover:bg-muted/60", className)} {...props} />;
+  return (
+    <tr
+      className={cn(
+        "border-b border-dashed border-border transition-colors hover:bg-[#f3eee5]/70",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
       className={cn(
-        "h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+        "h-11 px-4 text-left align-middle text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground",
         className
       )}
       {...props}

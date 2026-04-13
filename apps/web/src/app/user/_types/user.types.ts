@@ -8,8 +8,12 @@ export interface UserFormValues {
   email: string;
   role: UserRecord["role"];
   departmentId: number;
+  teamIds: number[];
   primaryTeamId: number;
   position: string;
   title: string;
   phone: string;
+  employmentStatus: UserRecord["employmentStatus"];
+  joinDate: string;
+  profileImage: string;
 }

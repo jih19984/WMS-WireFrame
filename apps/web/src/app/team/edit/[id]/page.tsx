@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
+import { RoleGate } from "@/app/_common/components/RoleGate";
 import { teams } from "@/app/_common/service/mock-db";
 import { teamService } from "@/app/team/_service/team.service";
 import { TeamForm } from "@/app/team/_components/TeamForm";
@@ -14,7 +15,7 @@ export default function TeamEditPage() {
   if (!team) return <div>팀 정보를 찾을 수 없습니다.</div>;
 
   return (
-    <>
+    <RoleGate allow={["DIRECTOR", "DEPT_HEAD"]}>
       <PageHeader title={`${team.name} 수정`} description="팀 상태, 기간, 설명을 업데이트합니다." />
       <Card>
         <CardContent className="pt-5">
@@ -36,6 +37,6 @@ export default function TeamEditPage() {
           />
         </CardContent>
       </Card>
-    </>
+    </RoleGate>
   );
 }

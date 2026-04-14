@@ -15,7 +15,7 @@ export function FileList({
   onDelete: (file: FileItem) => void;
 }) {
   return (
-    <Card className="border-white/8">
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -27,7 +27,7 @@ export function FileList({
       </CardHeader>
       <CardContent className="space-y-3">
         {files.length === 0 ? (
-          <div className="workspace-empty rounded-2xl px-6 py-10 text-center text-sm">
+          <div className="workspace-empty rounded-xl px-6 py-10 text-center text-sm">
             조건에 맞는 파일이 없습니다.
           </div>
         ) : (

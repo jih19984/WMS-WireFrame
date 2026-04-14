@@ -21,13 +21,13 @@ export function DepartmentList({
         return (
           <Card
             key={department.id}
-            className="relative overflow-hidden border-white/8 transition-all hover:-translate-y-0.5 hover:border-white/14"
+            className="relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-border"
           >
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <div className="workspace-panel-inset flex size-10 items-center justify-center rounded-2xl">
+                    <div className="flex size-10 items-center justify-center rounded-xl border border-border/70 bg-muted/35">
                       <Building2 className="size-5 text-muted-foreground" />
                     </div>
                     <CardTitle className="text-[18px] font-[600] tracking-[-0.04em]">{department.name}</CardTitle>
@@ -38,21 +38,21 @@ export function DepartmentList({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="workspace-panel-inset rounded-2xl p-5 text-sm">
+              <div className="rounded-xl border border-border/70 bg-muted/35 p-5 text-sm">
                 <p className="mb-1 text-muted-foreground text-[13px]">사업부장</p>
                 <p className="text-[16px] font-[500]">{leader?.name ?? "미지정"}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="workspace-panel-inset rounded-2xl p-4 text-sm">
+                <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">생성일</p>
                   <p className="font-medium">{formatDate(department.createdAt)}</p>
                 </div>
-                <div className="workspace-panel-inset rounded-2xl p-4 text-sm">
+                <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">수정일</p>
                   <p className="font-medium">{formatDate(department.updatedAt)}</p>
                 </div>
               </div>
-              <div className="workspace-panel-inset rounded-2xl p-4 text-sm text-muted-foreground">
+              <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm text-muted-foreground">
                 부서 삭제는 실제 구현 시 소속 팀과 사용자가 남아 있으면 차단됩니다. 현재 와이어프레임에서는 정책 안내만 제공합니다.
               </div>
               <div className="flex items-center justify-end gap-2">

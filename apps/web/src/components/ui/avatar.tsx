@@ -8,7 +8,7 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/6 text-xs font-semibold text-secondary-foreground shadow-[var(--shadow-inset)]",
+        "relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-muted/40 text-xs font-semibold text-secondary-foreground",
         className
       )}
       {...props}

@@ -22,7 +22,7 @@ export function NotificationList({
 }) {
   if (notifications.length === 0) {
     return (
-      <div className="workspace-empty rounded-3xl px-6 py-12 text-center text-sm">
+      <div className="workspace-empty rounded-2xl px-6 py-12 text-center text-sm">
         표시할 알림이 없습니다.
       </div>
     );
@@ -31,7 +31,7 @@ export function NotificationList({
   return (
     <div className="workspace-list">
       {notifications.map((notification) => (
-        <Card key={notification.id} className="border-white/8">
+        <Card key={notification.id}>
           <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 space-y-3">
               <div className="flex items-center gap-2">

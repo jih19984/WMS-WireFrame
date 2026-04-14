@@ -13,7 +13,7 @@ export function Dialog({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/24 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
       onClick={() => onOpenChange(false)}
     >
       <div onClick={(event) => event.stopPropagation()}>{children}</div>
@@ -27,7 +27,7 @@ export function DialogContent({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("glass-panel-strong w-full max-w-lg rounded-xl p-6", className)}
+      className={cn("w-full max-w-lg rounded-2xl border border-border bg-background p-6 text-foreground shadow-2xl", className)}
       {...props}
     />
   );

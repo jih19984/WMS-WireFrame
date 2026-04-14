@@ -23,7 +23,7 @@ export function FileCard({
         : "secondary";
 
   return (
-    <Card className="border-white/8">
+    <Card>
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-4">
@@ -39,7 +39,7 @@ export function FileCard({
                 <span>{formatDate(file.uploadedAt)}</span>
               </div>
             </div>
-            <div className="workspace-panel-inset rounded-2xl px-4 py-3 text-sm leading-7 text-muted-foreground">
+            <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-sm leading-7 text-muted-foreground">
               {file.summaryPreview}
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm">

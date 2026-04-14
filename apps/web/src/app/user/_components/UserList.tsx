@@ -13,7 +13,7 @@ export function UserList({ users, readOnly = false }: { users: UserProfile[]; re
       {users.map((user) => (
         <Card
           key={user.id}
-          className="relative overflow-hidden border-white/8 transition-all hover:-translate-y-0.5 hover:border-white/14"
+          className="relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-border"
         >
           <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">

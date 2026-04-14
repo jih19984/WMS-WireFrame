@@ -176,7 +176,7 @@ export function SearchFilters({
 
   return (
     <div className="space-y-4">
-      <div className="workspace-panel-inset rounded-2xl px-4 py-3">
+      <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
         <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           Search Scope
         </p>

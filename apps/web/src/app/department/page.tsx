@@ -36,19 +36,19 @@ export default function DepartmentPage() {
           description="가시 범위 안의 부서 목록과 현재 부서 운영 규모를 한 화면에서 확인합니다."
         />
 
-        <Card className="border-white/8">
+        <Card>
           <CardContent className="grid gap-4 p-5 md:grid-cols-3">
-            <div className="workspace-panel-inset rounded-lg p-4">
+            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Scope</p>
               <p className="mt-2 text-lg font-semibold">
                 {isDirector ? "본부 전체" : "소속 부서"}
               </p>
             </div>
-            <div className="workspace-panel-inset rounded-lg p-4">
+            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Teams</p>
               <p className="mt-2 text-lg font-semibold">{visibleTeams.length}개</p>
             </div>
-            <div className="workspace-panel-inset rounded-lg p-4">
+            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Users</p>
               <p className="mt-2 text-lg font-semibold">{visibleUsers.length}명</p>
             </div>

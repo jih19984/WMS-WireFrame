@@ -15,7 +15,7 @@ export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?
         return (
           <Card
             key={team.id}
-            className="relative overflow-hidden border-white/8 transition-all hover:-translate-y-0.5 hover:border-white/14"
+            className="relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-border"
           >
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between gap-3">
@@ -30,20 +30,20 @@ export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="workspace-panel-inset rounded-2xl p-4 text-sm">
+                <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">부서</p>
                   <p className="truncate text-[15px] font-[500]">{department?.name}</p>
                 </div>
-                <div className="workspace-panel-inset rounded-2xl p-4 text-sm">
+                <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">팀리더</p>
                   <p className="truncate text-[15px] font-[500]">{leader?.name}</p>
                 </div>
-                <div className="workspace-panel-inset rounded-2xl p-4 text-sm">
+                <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">구성원</p>
                   <p className="truncate text-[15px] font-[500]">{team.members.length}명</p>
                 </div>
               </div>
-              <div className="workspace-panel-inset rounded-2xl p-4 text-sm text-muted-foreground">
+              <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm text-muted-foreground">
                 {team.operationNote}
               </div>
               <div className="flex items-center justify-end gap-2">

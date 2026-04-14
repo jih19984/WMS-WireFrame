@@ -32,13 +32,13 @@ export default function SearchPage() {
           <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">자료 탐색</h2>
           <p className="text-sm text-muted-foreground">검색 결과 {results.length}건</p>
         </div>
-        <Card className="border-white/8">
+        <Card>
           <CardContent className="grid gap-4 p-5">
             <SearchBar value={query} onChange={setQuery} />
             <div className="flex items-center justify-between gap-3">
               <Button
                 variant="outline"
-                className="h-10 border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="h-10"
                 onClick={() => setShowFilters((prev) => !prev)}
               >
                 <SlidersHorizontal className="size-4" />

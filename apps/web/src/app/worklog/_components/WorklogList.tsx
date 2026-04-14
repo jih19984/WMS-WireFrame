@@ -22,7 +22,7 @@ export function WorklogList({ worklogs }: { worklogs: Worklog[] }) {
         return (
           <Card
             key={worklog.id}
-            className="group relative overflow-hidden border-white/8 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/14"
+            className="group relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-border"
           >
             <CardContent className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 space-y-4">
@@ -43,12 +43,12 @@ export function WorklogList({ worklogs }: { worklogs: Worklog[] }) {
                 </div>
               </div>
               <div className="flex flex-col items-start gap-3 lg:items-end">
-                <div className="workspace-panel-inset rounded-2xl px-4 py-3 text-left lg:text-right">
+                <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-left lg:text-right">
                   <p className="text-[13px] font-semibold text-foreground">{team?.name}</p>
                   <p className="mt-1 text-[12px] text-muted-foreground">마감 {worklog.dueDate}</p>
                 </div>
                 {author ? (
-                  <div className="workspace-panel-inset hidden items-center gap-2.5 rounded-full pl-1.5 pr-3 py-1.5 md:flex">
+                  <div className="hidden items-center gap-2.5 rounded-full border border-border/70 bg-muted/35 px-2 py-1.5 md:flex">
                     <Avatar className="size-7">
                       <AvatarImage src={author.profileImage} alt={author.name} />
                       <AvatarFallback className="bg-primary/20 text-[10px] font-bold text-primary">

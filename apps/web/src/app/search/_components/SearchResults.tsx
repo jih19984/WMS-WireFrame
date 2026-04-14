@@ -5,7 +5,7 @@ export function SearchResults({ results }: { results: SearchResultItem[] }) {
   return (
     <div className="workspace-list">
       {results.length === 0 ? (
-        <div className="workspace-empty rounded-3xl px-6 py-12 text-center text-sm">
+        <div className="workspace-empty rounded-2xl px-6 py-12 text-center text-sm">
           검색 결과가 없습니다. 필터를 줄이거나 다른 검색어를 입력해보세요.
         </div>
       ) : (

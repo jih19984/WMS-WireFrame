@@ -55,10 +55,10 @@ export default function FilePage() {
         <div className="flex items-center justify-between">
           <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">파일 검색 및 필터</h2>
         </div>
-        <Card className="border-white/8">
+        <Card>
           <CardContent className="grid gap-4 p-5">
             <FileFilters value={filters} onChange={setFilters} fileTypes={fileTypes} />
-            <div className="workspace-panel-inset flex items-start gap-3 rounded-2xl px-4 py-3 text-xs leading-6 text-muted-foreground">
+            <div className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-xs leading-6 text-muted-foreground">
               <Files className="mt-0.5 size-4 shrink-0 text-primary" />
               <p>
               파일 삭제는 mock 기준으로 소프트 삭제 처리되며, 운영 기준으로는 Object Storage 파일과 벡터 임베딩도 함께 정리되는 흐름입니다.

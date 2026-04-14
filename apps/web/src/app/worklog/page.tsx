@@ -13,6 +13,7 @@ import { departments, tags, teams, users } from "@/app/_common/service/mock-db";
 import { useWorklog } from "@/app/worklog/_hooks/useWorklog";
 import { WorklogList } from "@/app/worklog/_components/WorklogList";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import {
@@ -124,8 +125,8 @@ export default function WorklogPage() {
             </Button>
           ) : null}
         </div>
-        <div className="workspace-panel rounded-3xl border-white/8 p-5">
-          <div className="flex flex-col gap-4">
+        <Card>
+          <CardContent className="flex flex-col gap-4 p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -139,7 +140,7 @@ export default function WorklogPage() {
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  className="h-10 border-white/10 bg-white/5 text-white hover:bg-white/10"
+                  className="h-10"
                   onClick={() => setShowFilters((prev) => !prev)}
                 >
                   <SlidersHorizontal className="size-4" />
@@ -156,7 +157,7 @@ export default function WorklogPage() {
                     )}
                   />
                 </Button>
-                <div className="workspace-panel-inset rounded-2xl px-4 py-3 text-sm text-muted-foreground">
+                <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-sm text-muted-foreground">
                   표시 중인 업무 <span className="ml-1 font-semibold text-foreground">{filteredWorklogs.length}건</span>
                 </div>
               </div>
@@ -172,7 +173,7 @@ export default function WorklogPage() {
             >
               <div className="overflow-hidden">
                 <div className="space-y-4 pt-1">
-                  <div className="workspace-panel-inset rounded-2xl px-4 py-3">
+                  <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
                     <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                       Worklog Filters
                     </p>
@@ -308,8 +309,8 @@ export default function WorklogPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
         <WorklogList worklogs={filteredWorklogs} />
       </div>
     </div>

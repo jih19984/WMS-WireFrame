@@ -1,4 +1,4 @@
-import { Bell, ChevronRight, Moon, Plus, Search, Sun, UserPlus, X } from "lucide-react";
+import { Bell, ChevronRight, Moon, Plus, Search, Sun, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/_common/hooks/useAuth";
@@ -88,26 +88,24 @@ export function GNB() {
           : null;
 
   return (
-    <header className="workspace-topbar sticky top-0 z-50 flex w-full items-center gap-4 border-b border-white/8 px-5 py-4 shadow-[0_16px_60px_-32px_rgba(0,0,0,0.9)] backdrop-blur-xl lg:px-8">
+    <header className="dark workspace-topbar sticky top-0 z-50 flex w-full items-center gap-4 border-b border-white/10 px-5 py-4 shadow-[0_16px_60px_-32px_rgba(0,0,0,0.55)] lg:px-8">
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/42">
+        <div className="inline-flex items-center rounded-md border border-white/10 bg-black/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white/65">
           ibank AX 사업본부
-        </p>
-        <div className="mt-1 flex items-center gap-2">
-          <h2 className="truncate text-[1.15rem] font-bold tracking-[-0.04em] text-white">
-            {pageTitle}
-          </h2>
         </div>
+        <h2 className="mt-2 truncate text-[1.15rem] font-semibold tracking-[-0.04em] text-white">
+          {pageTitle}
+        </h2>
       </div>
 
       <button
         type="button"
         onClick={() => navigate("/search")}
-        className="hidden h-10 min-w-[16rem] items-center gap-3 rounded-lg border border-white/10 bg-white/7 px-4 text-left text-sm text-white/64 transition-all hover:border-white/16 hover:bg-white/10 hover:text-white xl:flex"
+        className="hidden h-10 min-w-[16rem] items-center gap-3 rounded-lg border border-white/12 bg-black/10 px-4 text-left text-sm text-white/70 shadow-sm transition-all hover:bg-black/18 hover:text-white xl:flex"
       >
         <Search className="size-4 shrink-0" />
         <span className="truncate">업무 파일을 검색하세요</span>
-        <span className="ml-auto rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-[11px] text-white/40">
+        <span className="ml-auto rounded-md border border-white/10 bg-black/18 px-2 py-1 text-[11px] text-white/45">
           /
         </span>
       </button>
@@ -116,7 +114,7 @@ export function GNB() {
         {managementAction ? (
           <Button
             variant="outline"
-            className="hidden h-10 border-white/10 bg-white/6 text-white hover:bg-white/12 lg:inline-flex"
+            className="hidden h-10 border-white/12 bg-black/10 text-white hover:bg-black/18 lg:inline-flex"
             onClick={() => navigate(managementAction.href)}
           >
             <Plus className="size-4" />
@@ -124,21 +122,24 @@ export function GNB() {
           </Button>
         ) : null}
 
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           onClick={toggleTheme}
-          className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/72 transition-all hover:border-white/16 hover:bg-white/10 hover:text-white"
+          className="border-white/12 bg-black/10 text-white/75 hover:bg-black/18 hover:text-white"
           title="테마 전환"
         >
           {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </button>
+        </Button>
 
         {user ? (
           <div className="relative" ref={notificationRef}>
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => setShowNotifications((prev) => !prev)}
-              className="group flex h-10 items-center gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3 transition-all hover:border-white/16 hover:bg-white/10"
+              className="group h-10 border-white/12 bg-black/10 px-3 text-white/80 hover:bg-black/18"
             >
               <div className="relative flex items-center justify-center text-white/72 transition-colors group-hover:text-white">
                 <Bell className="size-4" />
@@ -151,10 +152,10 @@ export function GNB() {
                   {unreadCount > 0 ? `${unreadCount} 알림` : "알림 센터"}
                 </p>
               </div>
-            </button>
+            </Button>
 
             {showNotifications ? (
-              <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-[360px] rounded-xl border border-white/10 bg-[linear-gradient(180deg,#372640_0%,#2d2736_100%)] p-3 shadow-[var(--shadow-panel-strong)]">
+              <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-[360px] rounded-2xl border border-border/80 bg-popover p-3 text-popover-foreground shadow-2xl">
                 <div className="flex items-center justify-between gap-3 px-3 py-2">
                   <div>
                     <p className="text-sm font-semibold tracking-[-0.03em] text-foreground">
@@ -175,7 +176,7 @@ export function GNB() {
                       <button
                         key={notification.id}
                         type="button"
-                        className="workspace-panel-soft group rounded-lg p-4 text-left transition-all hover:border-white/12 hover:bg-white/6"
+                        className="workspace-panel-soft group rounded-xl p-4 text-left transition-all hover:border-border hover:bg-accent/50"
                         onClick={async () => {
                           await markRead(notification.id);
                           setShowNotifications(false);
@@ -220,7 +221,7 @@ export function GNB() {
                           <span
                             className={cn(
                               "flex size-8 shrink-0 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all",
-                              "group-hover:border-white/10 group-hover:bg-white/5 group-hover:text-foreground",
+                              "group-hover:border-border group-hover:bg-accent/50 group-hover:text-foreground",
                             )}
                           >
                             <ChevronRight className="size-4" />
@@ -235,7 +236,7 @@ export function GNB() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 border-t border-white/8 px-2 pt-3">
+                <div className="flex items-center gap-2 border-t border-border/70 px-2 pt-3">
                   <Button
                     variant="ghost"
                     className="flex-1 justify-center"
@@ -248,7 +249,7 @@ export function GNB() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 justify-center border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    className="flex-1 justify-center"
                     onClick={() => {
                       setShowNotifications(false);
                       navigate("/notification");

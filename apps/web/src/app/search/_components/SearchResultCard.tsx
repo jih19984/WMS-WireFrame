@@ -8,7 +8,7 @@ export function SearchResultCard({ result }: { result: SearchResultItem }) {
   const sourceTypeLabel = result.sourceType === "WORKLOG" ? "업무" : "파일";
 
   return (
-    <Card className="group border-white/8 transition-all hover:border-white/14">
+    <Card className="group transition-all hover:border-border">
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-2">
@@ -25,7 +25,7 @@ export function SearchResultCard({ result }: { result: SearchResultItem }) {
             </Link>
             <p className="text-sm leading-7 text-muted-foreground">{result.snippet}</p>
           </div>
-          <div className="workspace-panel-inset rounded-2xl px-4 py-3 text-xs text-muted-foreground">
+          <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-xs text-muted-foreground">
             <p>생성일</p>
             <p className="mt-1 font-semibold text-foreground">{formatDate(result.createdAt)}</p>
           </div>

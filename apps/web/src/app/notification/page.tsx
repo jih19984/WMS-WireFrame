@@ -23,17 +23,17 @@ export default function NotificationPage() {
           <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">전체 알림 내역</h2>
           <p className="text-sm text-muted-foreground">미확인 {unreadCount}건</p>
         </div>
-        <Card className="border-white/8">
+        <Card>
           <CardContent className="grid gap-3 p-5 md:grid-cols-3">
-            <div className="workspace-panel-inset rounded-2xl p-4">
+            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Unread</p>
               <p className="mt-2 text-2xl font-semibold">{unreadCount}</p>
             </div>
-            <div className="workspace-panel-inset rounded-2xl p-4">
+            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Read</p>
               <p className="mt-2 text-2xl font-semibold">{notifications.length - unreadCount}</p>
             </div>
-            <div className="workspace-panel-inset rounded-2xl p-4">
+            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Total</p>
               <p className="mt-2 text-2xl font-semibold">{notifications.length}</p>
             </div>

@@ -33,7 +33,7 @@ export function TabsList({
   return (
     <div
       className={cn(
-        "inline-flex rounded-lg border border-border bg-muted p-1",
+        "inline-flex rounded-lg border border-border bg-muted/70 p-1.5 shadow-[var(--shadow-inset)]",
         className
       )}
       {...props}
@@ -56,8 +56,10 @@ export function TabsTrigger({
   return (
     <button
       className={cn(
-        "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-        active ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground",
+        "rounded-xl px-4 py-2 text-sm font-semibold transition-all",
+        active
+          ? "bg-accent text-accent-foreground shadow-[var(--shadow-panel)]"
+          : "text-muted-foreground hover:bg-white/4 hover:text-foreground",
         className
       )}
       onClick={() => context.onChange(value)}

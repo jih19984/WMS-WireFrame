@@ -14,39 +14,48 @@ export function WorklogList({ worklogs }: { worklogs: Worklog[] }) {
   const { user } = useAuth();
 
   return (
-    <div className="grid gap-3">
+    <div className="workspace-list">
       {worklogs.map((worklog) => {
         const author = users.find((user) => user.id === worklog.authorId);
         const team = teams.find((item) => item.id === worklog.teamId);
 
         return (
-          <Card key={worklog.id} className="group relative overflow-hidden border border-[#dad4c8] bg-white transition-all hover:-translate-y-0.5 hover:border-[#bba7f6] hover:shadow-[var(--shadow-clay)]">
-            <CardContent className="flex items-center justify-between gap-4 p-5">
-              <div className="space-y-3">
+          <Card
+            key={worklog.id}
+            className="group relative overflow-hidden border-white/8 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/14"
+          >
+            <CardContent className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0 space-y-4">
                 <div className="flex items-center gap-2">
                   <StatusBadge status={worklog.status} />
                   <ImportanceBadge importance={worklog.importance} />
                 </div>
                 <div>
-                  <p className="text-[17px] font-[600] tracking-[-0.03em] text-[#101010] transition-colors group-hover:text-[#43089f]">{worklog.title}</p>
-                  <p className="mt-1.5 line-clamp-2 text-[14px] leading-[1.6] text-[#55534e] md:line-clamp-1">{worklog.aiSummary}</p>
+                  <p className="text-[18px] font-[700] tracking-[-0.03em] text-foreground transition-colors group-hover:text-primary">
+                    {worklog.title}
+                  </p>
+                  <p className="mt-2 line-clamp-2 max-w-3xl text-[14px] leading-7 text-muted-foreground">
+                    {worklog.aiSummary}
+                  </p>
                   <p className="mt-2 text-xs text-muted-foreground">
                     AI 상태 {getAiStatusLabel(worklog.aiStatus)} · 선행 업무 {worklog.dependencyIds.length}건
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="hidden text-right md:block">
-                  <p className="text-[14px] font-[500] text-[#101010]">{team?.name}</p>
-                  <p className="mt-0.5 text-[12px] text-[#9f9b93]">마감 {worklog.dueDate}</p>
+              <div className="flex flex-col items-start gap-3 lg:items-end">
+                <div className="workspace-panel-inset rounded-2xl px-4 py-3 text-left lg:text-right">
+                  <p className="text-[13px] font-semibold text-foreground">{team?.name}</p>
+                  <p className="mt-1 text-[12px] text-muted-foreground">마감 {worklog.dueDate}</p>
                 </div>
                 {author ? (
-                  <div className="hidden items-center gap-2.5 md:flex rounded-full border border-[#dad4c8]/50 bg-[#faf9f7] pl-1 pr-3 py-1">
-                    <Avatar className="size-6 border border-white shadow-sm">
+                  <div className="workspace-panel-inset hidden items-center gap-2.5 rounded-full pl-1.5 pr-3 py-1.5 md:flex">
+                    <Avatar className="size-7">
                       <AvatarImage src={author.profileImage} alt={author.name} />
-                      <AvatarFallback className="bg-[#8adbf3]/20 text-[10px] font-bold text-[#01418d]">{author.name.slice(0, 1)}</AvatarFallback>
+                      <AvatarFallback className="bg-primary/20 text-[10px] font-bold text-primary">
+                        {author.name.slice(0, 1)}
+                      </AvatarFallback>
                     </Avatar>
-                    <span className="text-[13px] font-[500] text-[#101010]">{author.name}</span>
+                    <span className="text-[13px] font-[500] text-foreground">{author.name}</span>
                   </div>
                 ) : null}
                 <div className="flex items-center gap-2">

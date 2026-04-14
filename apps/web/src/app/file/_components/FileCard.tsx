@@ -23,12 +23,14 @@ export function FileCard({
         : "secondary";
 
   return (
-    <Card>
-      <CardContent className="space-y-4 p-4">
+    <Card className="border-white/8">
+      <CardContent className="space-y-4 p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-4">
             <div>
-              <p className="font-medium">{file.originalName}</p>
+              <p className="text-[18px] font-semibold tracking-[-0.03em] text-foreground">
+                {file.originalName}
+              </p>
               <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <span>{file.type}</span>
                 <span>•</span>
@@ -37,7 +39,7 @@ export function FileCard({
                 <span>{formatDate(file.uploadedAt)}</span>
               </div>
             </div>
-            <div className="rounded-lg bg-muted/40 px-3 py-2 text-sm leading-6 text-muted-foreground">
+            <div className="workspace-panel-inset rounded-2xl px-4 py-3 text-sm leading-7 text-muted-foreground">
               {file.summaryPreview}
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm">

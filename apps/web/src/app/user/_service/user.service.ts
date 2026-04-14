@@ -17,6 +17,7 @@ export const userService = {
   async create(values: UserFormValues) {
     const created: UserProfile = {
       id: getNextUserId(),
+      password: "password123",
       skills: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -35,6 +36,23 @@ export const userService = {
     });
     notifyMockDb();
     return target;
+  },
+  async updatePassword(id: number, currentPassword: string, nextPassword: string) {
+    const target = users.find((user) => user.id === id);
+    if (!target) {
+      return { ok: false as const, message: "사용자 정보를 찾을 수 없습니다." };
+    }
+
+    const resolvedPassword = target.password ?? "password123";
+    if (resolvedPassword !== currentPassword) {
+      return { ok: false as const, message: "현재 비밀번호가 올바르지 않습니다." };
+    }
+
+    target.password = nextPassword;
+    target.updatedAt = new Date().toISOString();
+    notifyMockDb();
+
+    return { ok: true as const };
   },
   async getEvaluations(userId: number): Promise<UserEvaluation[]> {
     return evaluations.filter((evaluation) => evaluation.userId === userId);

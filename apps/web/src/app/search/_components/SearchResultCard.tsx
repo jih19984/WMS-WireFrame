@@ -8,22 +8,28 @@ export function SearchResultCard({ result }: { result: SearchResultItem }) {
   const sourceTypeLabel = result.sourceType === "WORKLOG" ? "업무" : "파일";
 
   return (
-    <Card>
-      <CardContent className="space-y-3 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="space-y-1">
+    <Card className="group border-white/8 transition-all hover:border-white/14">
+      <CardContent className="space-y-4 p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-2">
             <div className="flex items-center gap-2">
               <Badge>{sourceTypeLabel}</Badge>
               <Badge variant="secondary">{result.score}% 일치</Badge>
               {result.metadata.fileType ? <Badge variant="outline">{result.metadata.fileType}</Badge> : null}
             </div>
-            <Link to={result.sourceLink} className="text-base font-medium hover:text-primary">
+            <Link
+              to={result.sourceLink}
+              className="block truncate text-[18px] font-semibold tracking-[-0.03em] text-foreground transition-colors hover:text-primary"
+            >
               {result.title}
             </Link>
+            <p className="text-sm leading-7 text-muted-foreground">{result.snippet}</p>
           </div>
-          <span className="text-xs text-muted-foreground">{formatDate(result.createdAt)}</span>
+          <div className="workspace-panel-inset rounded-2xl px-4 py-3 text-xs text-muted-foreground">
+            <p>생성일</p>
+            <p className="mt-1 font-semibold text-foreground">{formatDate(result.createdAt)}</p>
+          </div>
         </div>
-        <p className="text-sm leading-6 text-muted-foreground">{result.snippet}</p>
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
           <span>{result.metadata.departmentName}</span>
           <span>•</span>

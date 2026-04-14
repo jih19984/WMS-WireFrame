@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function Pagination({
   page,
@@ -10,20 +10,74 @@ export function Pagination({
   totalPages: number;
   onPageChange: (page: number) => void;
 }) {
+  if (totalPages <= 1) return null;
+
+  const visiblePages = Array.from({ length: totalPages }, (_, index) => index + 1).filter((value) => {
+    if (totalPages <= 7) return true;
+    return value === 1 || value === totalPages || Math.abs(value - page) <= 1;
+  });
+
   return (
-    <div className="flex items-center justify-between pt-4">
-      <p className="text-sm text-muted-foreground">
-        {page} / {totalPages} 페이지
-      </p>
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
-          <ChevronLeft className="size-4" />
-          이전
-        </Button>
-        <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
-          다음
-          <ChevronRight className="size-4" />
-        </Button>
+    <div className="flex items-center justify-center gap-1.5 pt-4">
+      <button
+        type="button"
+        disabled={page <= 1}
+        onClick={() => onPageChange(1)}
+        className="inline-flex size-9 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all hover:bg-white/6 hover:text-foreground disabled:pointer-events-none disabled:opacity-35"
+      >
+        <ChevronsLeft className="size-4" />
+      </button>
+      <button
+        type="button"
+        disabled={page <= 1}
+        onClick={() => onPageChange(page - 1)}
+        className="inline-flex size-9 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all hover:bg-white/6 hover:text-foreground disabled:pointer-events-none disabled:opacity-35"
+      >
+        <ChevronLeft className="size-4" />
+      </button>
+      <div className="flex items-center gap-1">
+        {visiblePages.map((value, index) => {
+          const prev = visiblePages[index - 1];
+          const showGap = prev && value - prev > 1;
+          return (
+            <div key={value} className="flex items-center gap-1">
+              {showGap ? <span className="px-1.5 text-xs text-muted-foreground">…</span> : null}
+              <button
+                type="button"
+                onClick={() => onPageChange(value)}
+                className={cn(
+                  "inline-flex size-9 items-center justify-center rounded-xl border text-sm font-semibold transition-all",
+                  value === page
+                    ? "border-white/12 bg-accent text-accent-foreground shadow-[var(--shadow-panel)]"
+                    : "border-transparent text-muted-foreground hover:bg-white/6 hover:text-foreground"
+                )}
+              >
+                {value}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      <button
+        type="button"
+        disabled={page >= totalPages}
+        onClick={() => onPageChange(page + 1)}
+        className="inline-flex size-9 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all hover:bg-white/6 hover:text-foreground disabled:pointer-events-none disabled:opacity-35"
+      >
+        <ChevronRight className="size-4" />
+      </button>
+      <button
+        type="button"
+        disabled={page >= totalPages}
+        onClick={() => onPageChange(totalPages)}
+        className="inline-flex size-9 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all hover:bg-white/6 hover:text-foreground disabled:pointer-events-none disabled:opacity-35"
+      >
+        <ChevronsRight className="size-4" />
+      </button>
+      <div className="ml-3 hidden items-center gap-2 rounded-full border border-border bg-white/4 px-3 py-1 text-xs text-muted-foreground md:flex">
+        <span className="font-semibold text-foreground">{page}</span>
+        <span>/</span>
+        <span>{totalPages}</span>
       </div>
     </div>
   );

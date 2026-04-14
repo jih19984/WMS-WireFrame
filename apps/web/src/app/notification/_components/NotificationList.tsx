@@ -20,18 +20,28 @@ export function NotificationList({
   notifications: NotificationItem[];
   onRead: (id: number) => Promise<void>;
 }) {
+  if (notifications.length === 0) {
+    return (
+      <div className="workspace-empty rounded-3xl px-6 py-12 text-center text-sm">
+        표시할 알림이 없습니다.
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-3">
+    <div className="workspace-list">
       {notifications.map((notification) => (
-        <Card key={notification.id}>
-          <CardContent className="flex items-start justify-between gap-4 p-4">
-            <div className="space-y-2">
+        <Card key={notification.id} className="border-white/8">
+          <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 space-y-3">
               <div className="flex items-center gap-2">
                 <Badge variant={notification.isRead ? "outline" : "default"}>{notificationTypeLabelMap[notification.type]}</Badge>
                 {!notification.isRead ? <Badge variant="secondary">읽지 않음</Badge> : null}
               </div>
-              <p className="font-medium">{notification.title}</p>
-              <p className="text-sm text-muted-foreground">{notification.content}</p>
+              <p className="text-[18px] font-semibold tracking-[-0.03em] text-foreground">
+                {notification.title}
+              </p>
+              <p className="text-sm leading-7 text-muted-foreground">{notification.content}</p>
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                 <span>{notification.sourceScope}</span>
                 <span>•</span>
@@ -44,7 +54,7 @@ export function NotificationList({
                 ) : null}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-row gap-2 lg:flex-col lg:items-end">
               <Button
                 type="button"
                 size="sm"

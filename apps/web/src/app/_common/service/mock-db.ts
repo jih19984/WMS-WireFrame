@@ -56,6 +56,7 @@ export interface UserRecord {
   id: number;
   name: string;
   email: string;
+  password?: string;
   role: UserRole;
   departmentId: number;
   primaryTeamId: number;

@@ -15,12 +15,12 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             type="checkbox"
             checked={checked}
             className={cn(
-              "peer absolute inset-0 m-0 size-4 cursor-pointer appearance-none rounded-md border border-border bg-card outline-none focus-visible:ring-2 focus-visible:ring-ring checked:border-black checked:bg-black",
+              "peer absolute inset-0 m-0 size-4 cursor-pointer appearance-none rounded-md border border-border bg-card outline-none focus-visible:ring-2 focus-visible:ring-ring checked:border-primary checked:bg-primary",
               className
             )}
             {...props}
           />
-          <Check className="pointer-events-none size-3 text-white opacity-0 peer-checked:opacity-100" />
+          <Check className="pointer-events-none size-3 text-primary-foreground opacity-0 peer-checked:opacity-100" />
         </span>
       </label>
     );

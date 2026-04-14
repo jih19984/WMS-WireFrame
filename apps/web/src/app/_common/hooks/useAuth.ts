@@ -1,5 +1,11 @@
 import { useSyncExternalStore } from "react";
-import { getCurrentUser, loginAsUser, logout, subscribe } from "@/app/_common/store/auth.store";
+import {
+  getCurrentUser,
+  loginAsUser,
+  logout,
+  refreshCurrentUser,
+  subscribe,
+} from "@/app/_common/store/auth.store";
 
 export function useAuth() {
   const user = useSyncExternalStore(subscribe, getCurrentUser, getCurrentUser);
@@ -8,6 +14,7 @@ export function useAuth() {
     user,
     login: loginAsUser,
     logout,
+    refreshUser: refreshCurrentUser,
     isAuthenticated: Boolean(user),
   };
 }

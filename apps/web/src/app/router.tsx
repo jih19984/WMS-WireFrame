@@ -22,6 +22,7 @@ import SearchPage from "@/app/search/page";
 import FilePage from "@/app/file/page";
 import NotificationPage from "@/app/notification/page";
 import TagPage from "@/app/tag/page";
+import ProfilePage from "@/app/profile/page";
 
 const withProvider = (element: React.ReactNode) => <QueryProvider>{element}</QueryProvider>;
 
@@ -50,7 +51,8 @@ export const router = createBrowserRouter([
       { path: "search", element: <SearchPage /> },
       { path: "file", element: <FilePage /> },
       { path: "notification", element: <NotificationPage /> },
-      { path: "tag", element: <TagPage /> }
+      { path: "tag", element: <TagPage /> },
+      { path: "profile", element: <ProfilePage /> }
     ]
   }
 ]);

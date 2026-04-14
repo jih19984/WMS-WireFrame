@@ -24,7 +24,10 @@ export default function UserPage() {
           ) : null
         }
       />
-      <UserList users={users} readOnly={!canManage} />
+      <div className="space-y-4">
+        <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">사용자 목록</h2>
+        <UserList users={users} readOnly={!canManage} />
+      </div>
     </>
   );
 }

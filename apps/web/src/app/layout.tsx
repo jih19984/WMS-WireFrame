@@ -1,28 +1,31 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { GNB } from "@/app/_common/components/GNB";
 import { Sidebar } from "@/app/_common/components/Sidebar";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 
 export default function AppLayout() {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   return (
-    <div className="relative flex h-full overflow-hidden bg-transparent text-foreground">
+    <div className="relative flex h-full overflow-hidden bg-background text-foreground">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-[-5rem] top-[-4rem] size-72 rounded-full bg-[#f8cc65]/45 blur-3xl" />
-        <div className="absolute right-[-4rem] top-[8%] size-80 rounded-full bg-[#3bd3fd]/24 blur-3xl" />
-        <div className="absolute bottom-[-7rem] left-[22%] size-96 rounded-full bg-[#c1b0ff]/28 blur-3xl" />
-        <div className="absolute bottom-14 right-[8%] size-28 rounded-[38%_62%_57%_43%/42%_39%_61%_58%] border border-dashed border-border bg-white/40" />
+        <div className="absolute left-[-12rem] top-[-10rem] h-80 w-80 rounded-full bg-[#2563eb]/20 blur-[120px]" />
+        <div className="absolute left-[18%] top-[4%] h-72 w-72 rounded-full bg-[#1e3a8a]/22 blur-[140px]" />
+        <div className="absolute right-[-10rem] top-[-5rem] h-72 w-72 rounded-full bg-[#3b82f6]/14 blur-[120px]" />
       </div>
       <Sidebar />
-      <div className="relative z-10 flex flex-1 flex-col min-w-0 overflow-hidden bg-background">
+      <div className="workspace-main relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden">
         <GNB />
-        <main className="flex-1 overflow-auto p-6">
-          <div className="mx-auto flex max-w-7xl flex-col gap-6">
+        <main className="flex-1 overflow-auto px-5 py-5 lg:px-8 lg:py-6">
+          <div
+            key={location.pathname}
+            className="route-content-enter flex min-h-full flex-col gap-5"
+          >
             <Outlet />
           </div>
         </main>

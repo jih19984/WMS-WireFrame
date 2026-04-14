@@ -3,26 +3,26 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-full border text-[16px] font-medium tracking-[-0.16px] outline-none transition-all duration-200 ease-out disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+  "inline-flex items-center justify-center gap-2 rounded-md border text-[14px] font-semibold tracking-[-0.02em] outline-none transition-all duration-200 ease-out disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
   {
     variants: {
       variant: {
         default:
-          "border-black bg-primary text-primary-foreground shadow-[var(--shadow-clay)] hover:bg-[#078a52] hover:shadow-[var(--shadow-clay-hard)]",
+          "border-transparent bg-primary text-primary-foreground shadow-[var(--shadow-panel)] hover:brightness-110",
         outline:
-          "glass-input border-border bg-white text-foreground hover:bg-[#f8cc65] hover:text-foreground hover:shadow-[var(--shadow-clay-hard)]",
+          "border-border bg-white/4 text-foreground shadow-none hover:border-white/14 hover:bg-white/8",
         secondary:
-          "border-[#078a52]/25 bg-[#84e7a5] text-[#02492a] shadow-[var(--shadow-clay)] hover:bg-[#3bd3fd] hover:text-[#01418d] hover:shadow-[var(--shadow-clay-hard)]",
+          "border-white/6 bg-white/7 text-foreground shadow-none hover:bg-white/12",
         ghost:
-          "border-dashed border-border bg-transparent text-muted-foreground shadow-none hover:border-black hover:bg-[#fff4da] hover:text-foreground hover:shadow-[var(--shadow-clay-hard)]",
+          "border-transparent bg-transparent text-muted-foreground shadow-none hover:bg-white/6 hover:text-foreground",
         destructive:
-          "border-[#b74b55] bg-[#fc7981] text-foreground shadow-[var(--shadow-clay)] hover:bg-[#c1b0ff] hover:text-[#32037d] hover:shadow-[var(--shadow-clay-hard)]",
+          "border-transparent bg-destructive text-white shadow-[var(--shadow-panel)] hover:brightness-110",
       },
       size: {
-        default: "h-11 px-5",
-        sm: "h-9 px-3.5 text-xs",
-        lg: "h-12 px-6 text-base",
-        icon: "size-11",
+        default: "h-10 px-[18px]",
+        sm: "h-8 px-3 text-[12px]",
+        lg: "h-11 px-5 text-[15px]",
+        icon: "size-10",
       },
     },
     defaultVariants: {
@@ -42,10 +42,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, children, type, ...props }, ref) => {
     const resolvedClassName = cn(
       buttonVariants({ variant, size }),
-      variant === "default" || variant === "secondary" || variant === "destructive"
-        ? "hover:-translate-y-1 hover:shadow-[var(--shadow-clay-hard)]"
-        : "hover:-translate-y-0.5",
-      variant === "default" || variant === "destructive" ? "hover:-rotate-2" : "",
+      variant === "default" || variant === "destructive"
+        ? "hover:-translate-y-0.5"
+        : "hover:-translate-y-px",
       className
     );
 

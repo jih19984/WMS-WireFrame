@@ -20,20 +20,20 @@ export default function NotificationPage() {
       />
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-[20px] font-semibold tracking-[-0.04em]">전체 알림 내역</h2>
+          <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">전체 알림 내역</h2>
           <p className="text-sm text-muted-foreground">미확인 {unreadCount}건</p>
         </div>
-        <Card className="rounded-xl shadow-sm">
+        <Card className="border-white/8">
           <CardContent className="grid gap-3 p-5 md:grid-cols-3">
-            <div className="rounded-xl bg-muted/20 p-4">
+            <div className="workspace-panel-inset rounded-2xl p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Unread</p>
               <p className="mt-2 text-2xl font-semibold">{unreadCount}</p>
             </div>
-            <div className="rounded-xl bg-muted/20 p-4">
+            <div className="workspace-panel-inset rounded-2xl p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Read</p>
               <p className="mt-2 text-2xl font-semibold">{notifications.length - unreadCount}</p>
             </div>
-            <div className="rounded-xl bg-muted/20 p-4">
+            <div className="workspace-panel-inset rounded-2xl p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Total</p>
               <p className="mt-2 text-2xl font-semibold">{notifications.length}</p>
             </div>

@@ -34,7 +34,6 @@ import {
   formatHours,
   getAiStatusLabel,
   getImportanceLabel,
-  getRoleLabel,
   getWorklogStatusLabel,
 } from "@/lib/utils";
 
@@ -170,9 +169,8 @@ export default function DashboardPage() {
     : [];
 
   return (
-    <div className="flex flex-col gap-6 pb-12">
+    <div className="flex flex-col gap-5 pb-12">
       <PageHeader
-        eyebrow={getRoleLabel(user.role)}
         title={`${user.name}님, 오늘의 AX-WMS 현황입니다`}
         description={
           isAdmin
@@ -224,7 +222,7 @@ export default function DashboardPage() {
             />
           </section>
 
-          <section className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <section className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
             <Card>
               <CardHeader>
                 <CardTitle>업무 상태 분포</CardTitle>
@@ -252,7 +250,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {[...overdueWorklogs, ...dueSoonWorklogs].slice(0, 5).map((worklog) => (
-                  <div key={worklog.id} className="rounded-xl border border-border bg-card p-4">
+                  <div key={worklog.id} className="rounded-lg border border-border bg-card p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">{worklog.title}</p>
@@ -272,14 +270,14 @@ export default function DashboardPage() {
             </Card>
           </section>
 
-          <section className="grid gap-6 lg:grid-cols-[1.25fr_0.95fr]">
+          <section className="grid gap-5 lg:grid-cols-[1.25fr_0.95fr]">
             <Card>
               <CardHeader>
                 <CardTitle>부서별 업무 부하</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {departmentWorkload.map((department) => (
-                  <div key={department.id} className="rounded-xl border border-border bg-card p-4">
+                  <div key={department.id} className="rounded-lg border border-border bg-card p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">{department.name}</p>
@@ -308,7 +306,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {notifications.slice(0, 4).map((notification) => (
-                  <div key={notification.id} className="rounded-xl border border-border bg-card p-4">
+                  <div key={notification.id} className="rounded-lg border border-border bg-card p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">{notification.title}</p>
@@ -355,14 +353,14 @@ export default function DashboardPage() {
             />
           </section>
 
-          <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
             <Card>
               <CardHeader>
                 <CardTitle>진행중 업무</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {inProgressWorklogs.map((worklog) => (
-                  <div key={worklog.id} className="rounded-xl border border-border bg-card p-4">
+                  <div key={worklog.id} className="rounded-lg border border-border bg-card p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
@@ -394,7 +392,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {recentCompletedWorklogs.map((worklog) => (
-                  <div key={worklog.id} className="rounded-xl border border-border bg-card p-4">
+                  <div key={worklog.id} className="rounded-lg border border-border bg-card p-4">
                     <p className="font-medium">{worklog.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       완료일 {worklog.completionDate ? formatDate(worklog.completionDate) : "-"}
@@ -402,7 +400,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {notifications.slice(0, 2).map((notification) => (
-                  <div key={notification.id} className="rounded-xl border border-border bg-card p-4">
+                  <div key={notification.id} className="rounded-lg border border-border bg-card p-4">
                     <p className="font-medium">{notification.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{notification.content}</p>
                   </div>
@@ -419,7 +417,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="grid gap-3 md:grid-cols-2">
                   {teamMemberSummary.map((member) => (
-                    <div key={member.id} className="rounded-xl border border-border bg-card p-4">
+                    <div key={member.id} className="rounded-lg border border-border bg-card p-4">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="font-medium">{member.name}</p>

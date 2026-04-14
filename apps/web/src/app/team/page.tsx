@@ -38,7 +38,7 @@ export default function TeamPage() {
       />
 
       <div className="space-y-4 py-4 mt-2">
-        <h2 className="text-[20px] font-semibold text-[#101010] tracking-[-0.04em]">
+        <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
           {canManage ? "가시 범위 내 팀 목록" : "소속 팀 정보"}
         </h2>
         <TeamList teams={teams} readOnly={readOnly} />
@@ -46,7 +46,7 @@ export default function TeamPage() {
 
       {isTeamLead(user) ? (
         <div className="space-y-4 py-4">
-          <h2 className="text-[20px] font-semibold text-[#101010] tracking-[-0.04em]">
+          <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
             팀 구성원 명단
           </h2>
           <UserList users={myMembers} readOnly />

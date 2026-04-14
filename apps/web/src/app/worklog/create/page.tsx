@@ -10,18 +10,16 @@ export default function WorklogCreatePage() {
   return (
     <>
       <PageHeader title="업무 등록" description="저장 시 AI 파이프라인 mock 상태가 함께 시작됩니다." />
-      <Card>
-        <CardContent className="pt-5">
-          <WorklogForm
-            submitLabel="업무 생성"
-            currentWorklogId={undefined}
-            onSubmit={async (values) => {
-              const created = await worklogService.create(values);
-              navigate(`/worklog/detail/${created.id}`);
-            }}
-          />
-        </CardContent>
-      </Card>
+      <div className="pb-10 pt-4">
+        <WorklogForm
+          submitLabel="업무 생성"
+          currentWorklogId={undefined}
+          onSubmit={async (values) => {
+            const created = await worklogService.create(values);
+            navigate(`/worklog/detail/${created.id}`);
+          }}
+        />
+      </div>
     </>
   );
 }

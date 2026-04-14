@@ -7,11 +7,17 @@ import {
   LayoutDashboard,
   Tags,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn, getRoleLabel } from "@/lib/utils";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import pikachuBadge from "@/assets/lanyard/pikachu.jpeg";
+
+const SidebarLanyard = lazy(async () => {
+  const module = await import("@/components/lanyard/SidebarLanyard");
+  return { default: module.SidebarLanyard };
+});
 
 const navItems = [
   {
@@ -87,7 +93,7 @@ export function Sidebar() {
 
   return (
     <aside className="dark workspace-sidebar relative z-20 flex h-full w-[17.5rem] shrink-0 flex-col overflow-hidden border-r border-border/70 text-foreground">
-      <div className="flex-1 overflow-y-auto px-3 py-6">
+      <div className="flex flex-1 flex-col overflow-y-auto px-3 py-6">
         <div className="flex flex-col gap-2">
           {filteredNavItems.map((item) => (
             item.submenus ? (
@@ -128,6 +134,21 @@ export function Sidebar() {
               </NavLink>
             )
           ))}
+        </div>
+
+        <div className="mt-auto px-2 pb-2 pt-6">
+          <Suspense
+            fallback={
+              <div className="h-[26rem] rounded-[2rem] bg-white/[0.03] ring-1 ring-white/6" />
+            }
+          >
+            <SidebarLanyard
+              badgeImage={pikachuBadge}
+              profileImage={user?.profileImage}
+              roleLabel={user ? getRoleLabel(user.role) : "내 계정"}
+              userName={user?.name}
+            />
+          </Suspense>
         </div>
       </div>
 

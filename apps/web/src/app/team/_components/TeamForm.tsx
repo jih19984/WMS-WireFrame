@@ -15,7 +15,8 @@ export function TeamForm({
   onSubmit: (values: TeamFormValues) => Promise<void> | void;
   submitLabel: string;
 }) {
-  const controlClassName = "border-black/80 dark:border-white/80";
+  const controlClassName = "h-12 rounded-xl";
+  const textareaClassName = "rounded-xl";
   const [values, setValues] = useState<TeamFormValues>(
     initialValues ?? {
       name: "",
@@ -51,7 +52,12 @@ export function TeamForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
           <label className="text-sm font-medium">팀명</label>
-          <Input className={controlClassName} value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} />
+          <Input
+            className={controlClassName}
+            placeholder="팀명을 입력하세요."
+            value={values.name}
+            onChange={(event) => setValues({ ...values, name: event.target.value })}
+          />
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-medium">상태</label>
@@ -78,7 +84,12 @@ export function TeamForm({
       </div>
       <div className="grid gap-2">
         <label className="text-sm font-medium">팀 설명</label>
-        <Textarea className={controlClassName} value={values.description} onChange={(event) => setValues({ ...values, description: event.target.value })} />
+        <Textarea
+          className={textareaClassName}
+          placeholder="팀의 목적과 운영 범위를 작성하세요."
+          value={values.description}
+          onChange={(event) => setValues({ ...values, description: event.target.value })}
+        />
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">

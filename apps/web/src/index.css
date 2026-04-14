@@ -291,6 +291,22 @@ pre {
   gap: 1rem;
 }
 
+.worklog-divider-top {
+  border-top: 2px solid rgba(0, 0, 0, 0.82) !important;
+}
+
+.worklog-divider-item {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.82) !important;
+}
+
+.dark .worklog-divider-top {
+  border-top-color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.dark .worklog-divider-item {
+  border-bottom-color: rgba(255, 255, 255, 0.82) !important;
+}
+
 .registration-surface input,
 .registration-surface select,
 .registration-surface textarea {

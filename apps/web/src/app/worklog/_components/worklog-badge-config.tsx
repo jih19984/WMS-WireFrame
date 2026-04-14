@@ -20,12 +20,14 @@ type StatusMeta = {
   icon: LucideIcon;
   label: string;
   variant: BadgeVariant;
+  className: string;
 };
 
 type ImportanceMeta = {
   icon: LucideIcon;
   label: string;
   variant: BadgeVariant;
+  className: string;
 };
 
 const statusBadgeConfig: Record<WorklogStatus, StatusMeta> = {
@@ -33,26 +35,31 @@ const statusBadgeConfig: Record<WorklogStatus, StatusMeta> = {
     icon: CircleDashed,
     label: getWorklogStatusLabel("PENDING"),
     variant: "outline",
+    className: "border-[#334155] bg-[#0f172a] text-[#cbd5e1]",
   },
   IN_PROGRESS: {
     icon: LoaderCircle,
     label: getWorklogStatusLabel("IN_PROGRESS"),
     variant: "default",
+    className: "border-[#1d4ed8] bg-[#112f72] text-[#60a5fa]",
   },
   DONE: {
     icon: CheckCheck,
     label: getWorklogStatusLabel("DONE"),
     variant: "success",
+    className: "border-[#065f46] bg-[#063a32] text-[#5eead4]",
   },
   ON_HOLD: {
     icon: Pause,
     label: getWorklogStatusLabel("ON_HOLD"),
     variant: "warning",
+    className: "border-[#92400e] bg-[#4a3210] text-[#fbbf24]",
   },
   CANCELLED: {
     icon: X,
     label: getWorklogStatusLabel("CANCELLED"),
     variant: "destructive",
+    className: "border-[#9f1239] bg-[#4a142b] text-[#fda4af]",
   },
 };
 
@@ -61,21 +68,25 @@ const importanceBadgeConfig: Record<ImportanceLevel, ImportanceMeta> = {
     icon: AlertTriangle,
     label: getImportanceLabel("URGENT"),
     variant: "destructive",
+    className: "border-[#9f1239] bg-[#4a142b] text-[#fda4af]",
   },
   HIGH: {
     icon: ArrowUp,
     label: getImportanceLabel("HIGH"),
     variant: "secondary",
+    className: "border-[#1e3a8a] bg-[#172554] text-[#dbeafe]",
   },
   NORMAL: {
     icon: Minus,
     label: getImportanceLabel("NORMAL"),
     variant: "secondary",
+    className: "border-[#1e3a8a] bg-[#172554] text-[#dbeafe]",
   },
   LOW: {
     icon: ArrowDown,
     label: getImportanceLabel("LOW"),
     variant: "secondary",
+    className: "border-[#1e3a8a] bg-[#172554] text-[#dbeafe]",
   },
 };
 

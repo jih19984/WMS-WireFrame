@@ -1,16 +1,16 @@
-import type { WorklogStatus } from "@/app/_common/types/api.types";
-import { getStatusBadgeMeta } from "@/app/worklog/_components/worklog-badge-config";
+import type { AiProcessingStatus } from "@/app/_common/types/api.types";
+import { getFileAiStatusMeta } from "@/app/file/_components/file-ai-badge-config";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-export function StatusBadge({
+export function FileAiStatusBadge({
   status,
   iconOnly = false,
 }: {
-  status: WorklogStatus;
+  status: AiProcessingStatus;
   iconOnly?: boolean;
 }) {
-  const { icon: Icon, label, variant, className } = getStatusBadgeMeta(status);
+  const { icon: Icon, label, variant, className, iconClassName } = getFileAiStatusMeta(status);
 
   return (
     <Badge
@@ -24,10 +24,10 @@ export function StatusBadge({
       )}
     >
       {iconOnly ? (
-        <Icon className="size-4" />
+        <Icon className={cn("size-4", iconClassName)} />
       ) : (
         <>
-          <Icon className="size-3.5" />
+          <Icon className={cn("size-3.5", iconClassName)} />
           <span>{label}</span>
         </>
       )}

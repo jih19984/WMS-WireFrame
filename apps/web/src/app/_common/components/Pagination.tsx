@@ -74,11 +74,6 @@ export function Pagination({
       >
         <ChevronsRight className="size-4" />
       </button>
-      <div className="ml-3 hidden items-center gap-2 rounded-full border border-border bg-white/4 px-3 py-1 text-xs text-muted-foreground md:flex">
-        <span className="font-semibold text-foreground">{page}</span>
-        <span>/</span>
-        <span>{totalPages}</span>
-      </div>
     </div>
   );
 }

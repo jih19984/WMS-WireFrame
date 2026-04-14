@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
 import {
   canCreateWorklog,
   getVisibleDepartments,
@@ -9,11 +9,18 @@ import {
 } from "@/app/_common/service/access-control";
 import { PageHeader } from "@/app/_common/components/PageHeader";
 import { Pagination } from "@/app/_common/components/Pagination";
+import { LegendHelpDialog } from "@/app/_common/components/LegendHelpDialog";
 import { usePagination } from "@/app/_common/hooks/usePagination";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { departments, tags, teams, users } from "@/app/_common/service/mock-db";
+import { ImportanceBadge } from "@/app/worklog/_components/ImportanceBadge";
+import { StatusBadge } from "@/app/worklog/_components/StatusBadge";
 import { useWorklog } from "@/app/worklog/_hooks/useWorklog";
 import { WorklogList } from "@/app/worklog/_components/WorklogList";
+import {
+  worklogImportanceLegendOrder,
+  worklogStatusLegendOrder,
+} from "@/app/worklog/_components/worklog-badge-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -119,7 +126,7 @@ export default function WorklogPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">업무 탐색</h2>
           {canCreate ? (
-            <Button asChild variant="outline" className="h-9">
+            <Button asChild variant="default" className="h-10 min-w-32 px-6 text-sm font-semibold">
               <Link to="/worklog/create">업무 등록</Link>
             </Button>
           ) : null}
@@ -155,9 +162,6 @@ export default function WorklogPage() {
                   )}
                 />
               </Button>
-              <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-sm text-muted-foreground">
-                표시 중인 업무 <span className="ml-1 font-semibold text-foreground">{filteredWorklogs.length}건</span>
-              </div>
             </div>
           </div>
 
@@ -170,14 +174,23 @@ export default function WorklogPage() {
             )}
           >
             <div className="overflow-hidden">
-              <div className="space-y-4 rounded-2xl border border-border/70 bg-card/70 p-5 pt-4">
-                <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3">
+              <div className="space-y-4 pt-3">
+                <div className="flex items-center justify-between gap-3">
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                     Worklog Filters
                   </p>
-                  <p className="mt-1 text-sm text-foreground">
-                    필요한 조건만 펼쳐서 업무 범위를 빠르게 좁힐 수 있습니다.
-                  </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9"
+                    aria-label="필터 초기화"
+                    onClick={() => {
+                      setQuery("");
+                      setFilters(DEFAULT_FILTERS);
+                    }}
+                  >
+                    <RefreshCw className="size-4" />
+                  </Button>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <div className="space-y-2">
@@ -283,37 +296,47 @@ export default function WorklogPage() {
                     />
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-                  <Button
-                    variant="ghost"
-                    className="h-10"
-                    onClick={() => {
-                      setQuery("");
-                      setFilters(DEFAULT_FILTERS);
-                    }}
-                  >
-                    초기화
-                  </Button>
-                  <Button
-                    className="h-10"
-                    onClick={() => {
-                      setShowFilters(false);
-                    }}
-                  >
-                    <Search className="size-4" />
-                    업무 검색
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
         </div>
-        <WorklogList worklogs={worklogPagination.items} />
-        <Pagination
-          page={worklogPagination.page}
-          totalPages={worklogPagination.totalPages}
-          onPageChange={worklogPagination.setPage}
-        />
+        <div className="pt-2">
+          <div className="pb-4">
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">
+                표시 중인 업무 <span className="ml-1 font-semibold text-foreground">{filteredWorklogs.length}건</span>
+              </p>
+              <LegendHelpDialog
+                title="업무 아이콘 안내"
+                description="업무 카드에서 보이는 상태와 중요도 아이콘 의미를 빠르게 확인할 수 있습니다."
+                buttonLabel="업무 아이콘 안내 열기"
+                sections={[
+                  {
+                    title: "상태",
+                    content: worklogStatusLegendOrder.map((status) => (
+                      <StatusBadge key={status} status={status} />
+                    )),
+                  },
+                  {
+                    title: "중요도",
+                    content: worklogImportanceLegendOrder.map((importance) => (
+                      <ImportanceBadge key={importance} importance={importance} />
+                    )),
+                  },
+                ]}
+                className="h-8 w-8"
+              />
+            </div>
+          </div>
+          <WorklogList worklogs={worklogPagination.items} />
+          <div className="pt-6">
+            <Pagination
+              page={worklogPagination.page}
+              totalPages={worklogPagination.totalPages}
+              onPageChange={worklogPagination.setPage}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

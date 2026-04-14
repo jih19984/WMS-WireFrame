@@ -10,14 +10,18 @@ export function ImportanceBadge({
   importance: ImportanceLevel;
   iconOnly?: boolean;
 }) {
-  const { icon: Icon, label, variant } = getImportanceBadgeMeta(importance);
+  const { icon: Icon, label, variant, className } = getImportanceBadgeMeta(importance);
 
   return (
     <Badge
       variant={variant}
       aria-label={label}
       title={label}
-      className={cn(iconOnly && "size-8 shrink-0 justify-center rounded-full p-0")}
+      className={cn(
+        "border",
+        className,
+        iconOnly && "size-8 shrink-0 justify-center rounded-full p-0",
+      )}
     >
       {iconOnly ? (
         <Icon className="size-4" />

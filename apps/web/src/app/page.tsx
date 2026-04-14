@@ -1,13 +1,10 @@
 import {
   AlertTriangle,
-  ArrowRight,
   BarChart3,
   CheckCircle2,
   Clock3,
-  Search,
   Users,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -18,7 +15,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { PageHeader } from "@/app/_common/components/PageHeader";
 import { StatCard } from "@/app/_common/components/StatCard";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { useDepartment } from "@/app/department/_hooks/useDepartment";
@@ -58,7 +54,6 @@ function daysUntil(date: string) {
 }
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { worklogs } = useWorklog();
   const { notifications, unreadCount } = useNotification();
@@ -170,25 +165,6 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-5 pb-12">
-      <PageHeader
-        title={`${user.name}님, 오늘의 AX-WMS 현황입니다`}
-        description={
-          isAdmin
-            ? "조직 전반의 업무 집계와 부하, 마감 이슈를 빠르게 파악하는 관리자 대시보드입니다."
-            : "내 업무와 마감, AI 처리 상태를 우선순위 중심으로 확인하는 개인 대시보드입니다."
-        }
-        actions={
-          <>
-            <Button variant="outline" onClick={() => navigate("/search")}>
-              <Search className="mr-1 size-4" /> 시맨틱 검색
-            </Button>
-            <Button onClick={() => navigate("/worklog/create")}>
-              새 업무 등록 <ArrowRight className="ml-1 size-4" />
-            </Button>
-          </>
-        }
-      />
-
       {isAdmin ? (
         <>
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

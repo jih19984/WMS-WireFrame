@@ -3,6 +3,7 @@ import {
   Building2,
   ChevronDown,
   Files,
+  FolderOpen,
   LayoutDashboard,
   Tags,
 } from "lucide-react";
@@ -26,6 +27,11 @@ const navItems = [
       { label: "업무 검색", href: "/worklog", exact: true },
       { label: "업무 등록", href: "/worklog/create" },
     ],
+  },
+  {
+    label: "파일",
+    href: "/file",
+    icon: FolderOpen,
   },
   {
     label: "조직",

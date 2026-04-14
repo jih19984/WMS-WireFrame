@@ -10,8 +10,8 @@ export default function DepartmentCreatePage() {
 
   return (
     <RoleGate allow={["DIRECTOR"]}>
-      <PageHeader title="부서 등록" description="새 부서를 추가하고 부서장을 지정합니다." />
-      <Card>
+      <PageHeader title="부서 등록" />
+      <Card className="registration-surface registration-card">
         <CardContent className="pt-5">
           <DepartmentForm
             submitLabel="부서 생성"

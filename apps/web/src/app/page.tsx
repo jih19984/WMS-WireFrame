@@ -15,6 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { PageHeader } from "@/app/_common/components/PageHeader";
 import { StatCard } from "@/app/_common/components/StatCard";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { useDepartment } from "@/app/department/_hooks/useDepartment";
@@ -26,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  cn,
   formatDate,
   formatHours,
   getAiStatusLabel,
@@ -165,6 +167,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-5 pb-12">
+      <PageHeader title="대시보드" />
       {isAdmin ? (
         <>
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -225,23 +228,30 @@ export default function DashboardPage() {
                 <CardTitle>마감 임박 및 지연</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {[...overdueWorklogs, ...dueSoonWorklogs].slice(0, 5).map((worklog) => (
-                  <div key={worklog.id} className="rounded-lg border border-border bg-card p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium">{worklog.title}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {teams.find((team) => team.id === worklog.teamId)?.name} / {formatDate(worklog.dueDate)}
-                        </p>
+                {[...overdueWorklogs, ...dueSoonWorklogs].slice(0, 5).map((worklog) => {
+                  const isOverdue = overdueWorklogs.some((item) => item.id === worklog.id);
+
+                  return (
+                    <div key={worklog.id} className="rounded-lg border border-border bg-card p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{worklog.title}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {teams.find((team) => team.id === worklog.teamId)?.name} / {formatDate(worklog.dueDate)}
+                          </p>
+                        </div>
+                        <span
+                          className={cn(
+                            "shrink-0 text-sm font-semibold tracking-[-0.01em]",
+                            isOverdue ? "text-rose-500" : "text-amber-500",
+                          )}
+                        >
+                          {isOverdue ? "Delay" : `D-${daysUntil(worklog.dueDate)}`}
+                        </span>
                       </div>
-                      <Badge variant={overdueWorklogs.some((item) => item.id === worklog.id) ? "destructive" : "warning"}>
-                        {overdueWorklogs.some((item) => item.id === worklog.id)
-                          ? "지연"
-                          : `D-${daysUntil(worklog.dueDate)}`}
-                      </Badge>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
           </section>
@@ -261,15 +271,16 @@ export default function DashboardPage() {
                           구성원 {department.members}명 / 진행중 업무 {department.inProgress}건
                         </p>
                       </div>
-                      <Badge
-                        variant={
+                      <span
+                        className={cn(
+                          "shrink-0 text-sm font-semibold tracking-[-0.01em]",
                           department.inProgress >= 3 || department.totalHours >= 12
-                            ? "warning"
-                            : "outline"
-                        }
+                            ? "text-amber-500"
+                            : "text-muted-foreground",
+                        )}
                       >
                         {formatHours(department.totalHours)}
-                      </Badge>
+                      </span>
                     </div>
                   </div>
                 ))}

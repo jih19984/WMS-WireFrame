@@ -291,6 +291,28 @@ pre {
   gap: 1rem;
 }
 
+.registration-surface input,
+.registration-surface select,
+.registration-surface textarea {
+  border-color: rgba(0, 0, 0, 0.82) !important;
+}
+
+.registration-surface .registration-card,
+.registration-surface .registration-panel {
+  border-color: rgba(0, 0, 0, 0.82) !important;
+}
+
+.dark .registration-surface input,
+.dark .registration-surface select,
+.dark .registration-surface textarea {
+  border-color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.dark .registration-surface .registration-card,
+.dark .registration-surface .registration-panel {
+  border-color: rgba(255, 255, 255, 0.82) !important;
+}
+
 .workspace-empty {
   border: 1px dashed color-mix(in srgb, var(--border) 82%, transparent);
   background: color-mix(in srgb, var(--muted) 35%, transparent);

@@ -11,7 +11,6 @@ export default function NotificationPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="알림"
-        description="긴급 업무, 마감, 의존성, 부하 알림을 사용자 기준으로 모아봅니다."
         actions={
           <Button type="button" variant="outline" onClick={markAllRead}>
             전체 읽음 처리

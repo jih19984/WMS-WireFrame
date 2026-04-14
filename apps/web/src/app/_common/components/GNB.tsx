@@ -1,7 +1,8 @@
 import { Bell, ChevronRight, Moon, Plus, Search, Sun, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/_common/hooks/useAuth";
+import { resolveBreadcrumbs } from "@/app/_common/service/breadcrumbs";
 import {
   canManageDepartments,
   canManageTeams,
@@ -11,22 +12,6 @@ import { useNotification } from "@/app/notification/_hooks/useNotification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn, formatDateTime } from "@/lib/utils";
-
-const pageTitleMap: Record<string, string> = {
-  "/": "대시보드",
-  "/department": "부서 관리",
-  "/department/create": "부서 등록",
-  "/team": "팀 관리",
-  "/team/create": "팀 등록",
-  "/user": "사용자 관리",
-  "/user/create": "사용자 등록",
-  "/worklog": "업무일지",
-  "/file": "파일",
-  "/search": "시맨틱 검색",
-  "/notification": "알림",
-  "/tag": "태그",
-  "/profile": "프로필 설정",
-};
 
 const notificationTypeLabelMap = {
   URGENT: "긴급",
@@ -71,12 +56,7 @@ export function GNB() {
     setIsDark(nextDark);
   };
 
-  const pageTitle =
-    pageTitleMap[location.pathname] ??
-    Object.entries(pageTitleMap).find(([path]) =>
-      location.pathname.startsWith(path) && path !== "/",
-    )?.[1] ??
-    "AX-WMS";
+  const breadcrumbs = resolveBreadcrumbs(location.pathname);
 
   const managementAction =
     location.pathname === "/department" && canManageDepartments(user)
@@ -93,18 +73,41 @@ export function GNB() {
         <div className="inline-flex items-center rounded-md border border-white/10 bg-black/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white/65">
           ibank AX 사업본부
         </div>
-        <h2 className="mt-2 truncate text-[1.15rem] font-semibold tracking-[-0.04em] text-white">
-          {pageTitle}
-        </h2>
+        <nav
+          aria-label="breadcrumb"
+          className="mt-2 flex flex-wrap items-center gap-1.5 text-[1.05rem] font-semibold tracking-[-0.04em] text-white"
+        >
+          {breadcrumbs.map((item, index) => {
+            const isCurrent = index === breadcrumbs.length - 1;
+
+            return (
+              <div key={`${location.pathname}-${index}`} className="flex items-center gap-1.5">
+                {index > 0 ? <ChevronRight className="size-4 text-white/42" /> : null}
+                {item.href && !isCurrent ? (
+                  <Link
+                    to={item.href}
+                    className="text-white/68 transition-colors hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <span className={isCurrent ? "text-white" : "text-white/68"}>
+                    {item.label}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </nav>
       </div>
 
       <button
         type="button"
-        onClick={() => navigate("/search")}
+        onClick={() => navigate("/worklog")}
         className="hidden h-10 min-w-[16rem] items-center gap-3 rounded-lg border border-white/12 bg-black/10 px-4 text-left text-sm text-white/70 shadow-sm transition-all hover:bg-black/18 hover:text-white xl:flex"
       >
         <Search className="size-4 shrink-0" />
-        <span className="truncate">업무 파일을 검색하세요</span>
+        <span className="truncate">업무 검색으로 이동</span>
         <span className="ml-auto rounded-md border border-white/10 bg-black/18 px-2 py-1 text-[11px] text-white/45">
           /
         </span>

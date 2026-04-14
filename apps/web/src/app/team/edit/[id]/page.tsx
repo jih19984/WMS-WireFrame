@@ -16,8 +16,8 @@ export default function TeamEditPage() {
 
   return (
     <RoleGate allow={["DIRECTOR", "DEPT_HEAD"]}>
-      <PageHeader title={`${team.name} 수정`} description="팀 상태, 기간, 설명을 업데이트합니다." />
-      <Card>
+      <PageHeader title={`${team.name} 수정`} />
+      <Card className="registration-surface registration-card">
         <CardContent className="pt-5">
           <TeamForm
             initialValues={{

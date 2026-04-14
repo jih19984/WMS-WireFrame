@@ -10,8 +10,8 @@ export default function TeamCreatePage() {
 
   return (
     <RoleGate allow={["DIRECTOR", "DEPT_HEAD"]}>
-      <PageHeader title="팀 등록" description="프로젝트 단위 팀을 생성하고 책임자를 지정합니다." />
-      <Card>
+      <PageHeader title="팀 등록" />
+      <Card className="registration-surface registration-card">
         <CardContent className="pt-5">
           <TeamForm
             submitLabel="팀 생성"

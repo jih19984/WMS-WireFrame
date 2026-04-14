@@ -4,7 +4,6 @@ import { PageHeader } from "@/app/_common/components/PageHeader";
 import { files, subscribeMockDb, worklogs } from "@/app/_common/service/mock-db";
 import { worklogService } from "@/app/worklog/_service/worklog.service";
 import { WorklogForm } from "@/app/worklog/_components/WorklogForm";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function WorklogEditPage() {
   const navigate = useNavigate();
@@ -26,36 +25,32 @@ export default function WorklogEditPage() {
 
   return (
     <>
-      <PageHeader title={`${worklog.title} 수정`} description="업무 내용 수정 시 AI 재생성 mock 흐름을 가정합니다." />
-      <Card>
-        <CardContent className="pt-5">
-          <WorklogForm
-            initialValues={{
-              title: worklog.title,
-              requestContent: worklog.requestContent,
-              workContent: worklog.workContent,
-              status: worklog.status,
-              importance: worklog.importance,
-              actualHours: worklog.actualHours,
-              instructionDate: worklog.instructionDate,
-              dueDate: worklog.dueDate,
-              teamId: worklog.teamId,
-              authorId: worklog.authorId,
-              dependencyIds: worklog.dependencyIds,
-              attachmentNames: files
-                .filter((file) => worklog.fileIds.includes(file.id) && !file.isDeleted)
-                .map((file) => file.originalName),
-              aiRegenerate: false,
-            }}
-            currentWorklogId={worklog.id}
-            submitLabel="수정 저장"
-            onSubmit={async (values) => {
-              await worklogService.update(worklog.id, values);
-              navigate(`/worklog/detail/${worklog.id}`);
-            }}
-          />
-        </CardContent>
-      </Card>
+      <PageHeader title={`${worklog.title} 수정`} />
+      <WorklogForm
+        initialValues={{
+          title: worklog.title,
+          requestContent: worklog.requestContent,
+          workContent: worklog.workContent,
+          status: worklog.status,
+          importance: worklog.importance,
+          actualHours: worklog.actualHours,
+          instructionDate: worklog.instructionDate,
+          dueDate: worklog.dueDate,
+          teamId: worklog.teamId,
+          authorId: worklog.authorId,
+          dependencyIds: worklog.dependencyIds,
+          attachmentNames: files
+            .filter((file) => worklog.fileIds.includes(file.id) && !file.isDeleted)
+            .map((file) => file.originalName),
+          aiRegenerate: false,
+        }}
+        currentWorklogId={worklog.id}
+        submitLabel="수정 저장"
+        onSubmit={async (values) => {
+          await worklogService.update(worklog.id, values);
+          navigate(`/worklog/detail/${worklog.id}`);
+        }}
+      />
     </>
   );
 }

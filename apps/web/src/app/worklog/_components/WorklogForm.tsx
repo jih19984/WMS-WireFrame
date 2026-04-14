@@ -50,6 +50,7 @@ export function WorklogForm({
   submitLabel: string;
   currentWorklogId?: number;
 }) {
+  const controlClassName = "border-black/80 dark:border-white/80";
   const { user } = useAuth();
   const [values, setValues] = useState<WorklogFormValues>(
     initialValues ?? {
@@ -108,7 +109,7 @@ export function WorklogForm({
 
   return (
     <form
-      className="flex max-w-3xl flex-col"
+      className="registration-surface flex max-w-3xl flex-col"
       onSubmit={async (event) => {
         event.preventDefault();
 
@@ -125,6 +126,7 @@ export function WorklogForm({
     >
       <Field label="제목" description="업무의 제목을 간결하게 작성하세요.">
         <Input
+          className={controlClassName}
           value={values.title}
           onChange={(event) => setValues({ ...values, title: event.target.value })}
         />
@@ -136,7 +138,7 @@ export function WorklogForm({
           onChange={(event) =>
             setValues({ ...values, requestContent: event.target.value })
           }
-          className="min-h-[120px]"
+          className={`min-h-[120px] ${controlClassName}`}
         />
       </Field>
 
@@ -146,13 +148,14 @@ export function WorklogForm({
           onChange={(event) =>
             setValues({ ...values, workContent: event.target.value })
           }
-          className="min-h-[160px]"
+          className={`min-h-[160px] ${controlClassName}`}
         />
       </Field>
 
       <Field label="상태 및 중요도" description="현재 업무의 진행 상태와 우선순위를 지정합니다.">
         <div className="flex w-full items-center gap-4">
           <Select
+            className={controlClassName}
             value={values.status}
             options={[
               { label: getWorklogStatusLabel("PENDING"), value: "PENDING" },
@@ -166,6 +169,7 @@ export function WorklogForm({
             }
           />
           <Select
+            className={controlClassName}
             value={values.importance}
             options={[
               { label: getImportanceLabel("URGENT"), value: "URGENT" },
@@ -183,16 +187,19 @@ export function WorklogForm({
       <Field label="담당자 및 시간" description="업무를 담당할 팀, 담당자와 예상/실제 소요 시간을 기록합니다.">
         <div className="flex w-full items-center gap-4">
           <Select
+            className={controlClassName}
             value={String(values.teamId)}
             options={teamOptions}
             onChange={(event) => setValues({ ...values, teamId: Number(event.target.value) })}
           />
           <Select
+            className={controlClassName}
             value={String(values.authorId)}
             options={authorOptions}
             onChange={(event) => setValues({ ...values, authorId: Number(event.target.value) })}
           />
           <Input
+            className={controlClassName}
             type="number"
             min={0}
             step={0.5}
@@ -206,12 +213,14 @@ export function WorklogForm({
       <Field label="진행 일정" description="지시일 및 마감일을 지정하세요.">
         <div className="flex w-full items-center gap-4">
           <Input
+            className={controlClassName}
             type="date"
             value={values.instructionDate}
             onChange={(event) => setValues({ ...values, instructionDate: event.target.value })}
           />
           <span className="text-muted-foreground">~</span>
           <Input
+            className={controlClassName}
             type="date"
             value={values.dueDate}
             onChange={(event) => setValues({ ...values, dueDate: event.target.value })}
@@ -220,7 +229,7 @@ export function WorklogForm({
       </Field>
 
       <Field label="선행 업무" description="이 업무를 시작하기 전에 완료되어야 하는 업무를 선택하세요.">
-        <div className="grid gap-2 rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="registration-panel grid gap-2 rounded-xl border border-white/10 bg-white/5 p-4">
           {dependencyCandidates.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               연결할 선행 업무가 없습니다.
@@ -263,6 +272,7 @@ export function WorklogForm({
 
       <Field label="첨부 파일" description="업무와 관련된 참고 문서를 등록합니다. (임시 모의 기능)">
         <Textarea
+          className={controlClassName}
           value={values.attachmentNames.join("\n")}
           onChange={(event) =>
             setValues({
@@ -278,7 +288,7 @@ export function WorklogForm({
       </Field>
 
       <Field label="AI 처리 옵션" description="저장 시 텍스트 요약, 태그 추출 및 시맨틱 임베딩 작업을 배경에서 시작합니다.">
-        <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition-all hover:bg-white/10">
+        <label className="registration-panel flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition-all hover:bg-white/10">
           <Checkbox
             checked={values.aiRegenerate}
             onChange={(event) =>

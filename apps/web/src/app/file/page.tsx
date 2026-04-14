@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { Files } from "lucide-react";
 import { PageHeader } from "@/app/_common/components/PageHeader";
+import { Pagination } from "@/app/_common/components/Pagination";
 import { ConfirmDialog } from "@/app/_common/components/ConfirmDialog";
+import { usePagination } from "@/app/_common/hooks/usePagination";
 import { useFile } from "@/app/file/_hooks/useFile";
 import { FileFilters } from "@/app/file/_components/FileFilters";
 import { FileList } from "@/app/file/_components/FileList";
@@ -47,6 +49,9 @@ export default function FilePage() {
   const processingFiles = filteredFiles.filter((file) => file.aiStatus === "PENDING" || file.aiStatus === "PROCESSING");
   const completedFiles = filteredFiles.filter((file) => file.aiStatus === "DONE");
   const failedFiles = filteredFiles.filter((file) => file.aiStatus === "FAILED");
+  const processingPagination = usePagination(processingFiles, 3);
+  const completedPagination = usePagination(completedFiles, 3);
+  const failedPagination = usePagination(failedFiles, 3);
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,24 +75,44 @@ export default function FilePage() {
       
       <div className="space-y-6 mt-4">
         <FileList
-          files={processingFiles}
+          files={processingPagination.items}
           title="AI 요약 생성중 파일"
           description="현재 OCR, 요약, 임베딩 파이프라인이 처리 중인 파일입니다."
           onDelete={setDeleteTarget}
+          totalCount={processingFiles.length}
+        />
+        <Pagination
+          page={processingPagination.page}
+          totalPages={processingPagination.totalPages}
+          onPageChange={processingPagination.setPage}
         />
         <FileList
-          files={completedFiles}
+          files={completedPagination.items}
           title="AI 요약 완료 파일"
           description="요약이 생성되어 바로 미리보기를 확인할 수 있는 파일입니다."
           onDelete={setDeleteTarget}
+          totalCount={completedFiles.length}
+        />
+        <Pagination
+          page={completedPagination.page}
+          totalPages={completedPagination.totalPages}
+          onPageChange={completedPagination.setPage}
         />
         {failedFiles.length > 0 ? (
-          <FileList
-            files={failedFiles}
-            title="AI 처리 실패 파일"
-            description="재시도 또는 수동 확인이 필요한 파일입니다."
-            onDelete={setDeleteTarget}
-          />
+          <>
+            <FileList
+              files={failedPagination.items}
+              title="AI 처리 실패 파일"
+              description="재시도 또는 수동 확인이 필요한 파일입니다."
+              onDelete={setDeleteTarget}
+              totalCount={failedFiles.length}
+            />
+            <Pagination
+              page={failedPagination.page}
+              totalPages={failedPagination.totalPages}
+              onPageChange={failedPagination.setPage}
+            />
+          </>
         ) : null}
       </div>
       <ConfirmDialog

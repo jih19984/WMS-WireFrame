@@ -1,17 +1,12 @@
 import { useState } from "react";
 import { useTag } from "@/app/tag/_hooks/useTag";
+import { TagStateBadge } from "@/app/tag/_components/TagStateBadge";
 import { tagService } from "@/app/tag/_service/tag.service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-
-const mergeStateLabelMap = {
-  ACTIVE: "운영중",
-  REVIEW: "검토 필요",
-  MERGE_CANDIDATE: "병합 후보",
-} as const;
 
 const sourceLabelMap = {
   AI: "AI 생성",
@@ -92,9 +87,7 @@ export function TagManager({ canManage }: { canManage: boolean }) {
                   <p className="font-medium">#{tag.name}</p>
                   <p className="text-sm text-muted-foreground">{tag.category} / {tag.usageCount}회 사용</p>
                 </div>
-                <Badge variant={tag.mergeState === "ACTIVE" ? "outline" : "warning"}>
-                  {mergeStateLabelMap[tag.mergeState]}
-                </Badge>
+                <TagStateBadge state={tag.mergeState} />
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary">{sourceLabelMap[tag.source]}</Badge>

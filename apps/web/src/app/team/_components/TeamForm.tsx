@@ -15,6 +15,7 @@ export function TeamForm({
   onSubmit: (values: TeamFormValues) => Promise<void> | void;
   submitLabel: string;
 }) {
+  const controlClassName = "border-black/80 dark:border-white/80";
   const [values, setValues] = useState<TeamFormValues>(
     initialValues ?? {
       name: "",
@@ -41,7 +42,7 @@ export function TeamForm({
 
   return (
     <form
-      className="grid gap-4"
+      className="registration-surface grid gap-4"
       onSubmit={async (event) => {
         event.preventDefault();
         await onSubmit(values);
@@ -50,11 +51,12 @@ export function TeamForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
           <label className="text-sm font-medium">팀명</label>
-          <Input value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} />
+          <Input className={controlClassName} value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} />
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-medium">상태</label>
           <Select
+            className={controlClassName}
             options={[
               { label: "ACTIVE", value: "ACTIVE" },
               { label: "INACTIVE", value: "INACTIVE" },
@@ -67,25 +69,25 @@ export function TeamForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
           <label className="text-sm font-medium">소속 부서</label>
-          <Select value={String(values.departmentId)} options={departmentOptions} onChange={(event) => setValues({ ...values, departmentId: Number(event.target.value) })} />
+          <Select className={controlClassName} value={String(values.departmentId)} options={departmentOptions} onChange={(event) => setValues({ ...values, departmentId: Number(event.target.value) })} />
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-medium">팀리더</label>
-          <Select value={String(values.leaderId)} options={leaderOptions} onChange={(event) => setValues({ ...values, leaderId: Number(event.target.value) })} />
+          <Select className={controlClassName} value={String(values.leaderId)} options={leaderOptions} onChange={(event) => setValues({ ...values, leaderId: Number(event.target.value) })} />
         </div>
       </div>
       <div className="grid gap-2">
         <label className="text-sm font-medium">팀 설명</label>
-        <Textarea value={values.description} onChange={(event) => setValues({ ...values, description: event.target.value })} />
+        <Textarea className={controlClassName} value={values.description} onChange={(event) => setValues({ ...values, description: event.target.value })} />
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
           <label className="text-sm font-medium">시작일</label>
-          <Input type="date" value={values.startDate} onChange={(event) => setValues({ ...values, startDate: event.target.value })} />
+          <Input className={controlClassName} type="date" value={values.startDate} onChange={(event) => setValues({ ...values, startDate: event.target.value })} />
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-medium">종료 예정일</label>
-          <Input type="date" value={values.endDate} onChange={(event) => setValues({ ...values, endDate: event.target.value })} />
+          <Input className={controlClassName} type="date" value={values.endDate} onChange={(event) => setValues({ ...values, endDate: event.target.value })} />
         </div>
       </div>
       <div className="flex justify-end">

@@ -15,6 +15,7 @@ export function DepartmentForm({
   onSubmit: (values: DepartmentFormValues) => Promise<void> | void;
   submitLabel: string;
 }) {
+  const controlClassName = "border-black/80 dark:border-white/80";
   const [values, setValues] = useState<DepartmentFormValues>(
     initialValues ?? { name: "", description: "", leaderId: users.find((user) => user.role === "DEPT_HEAD")?.id ?? 2 }
   );
@@ -29,7 +30,7 @@ export function DepartmentForm({
 
   return (
     <form
-      className="grid gap-4"
+      className="registration-surface grid gap-4"
       onSubmit={async (event) => {
         event.preventDefault();
         await onSubmit(values);
@@ -37,15 +38,16 @@ export function DepartmentForm({
     >
       <div className="grid gap-2">
         <label className="text-sm font-medium">부서명</label>
-        <Input value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} />
+        <Input className={controlClassName} value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} />
       </div>
       <div className="grid gap-2">
         <label className="text-sm font-medium">부서 설명</label>
-        <Textarea value={values.description} onChange={(event) => setValues({ ...values, description: event.target.value })} />
+        <Textarea className={controlClassName} value={values.description} onChange={(event) => setValues({ ...values, description: event.target.value })} />
       </div>
       <div className="grid gap-2">
         <label className="text-sm font-medium">사업부장</label>
         <Select
+          className={controlClassName}
           options={options}
           value={String(values.leaderId)}
           onChange={(event) => setValues({ ...values, leaderId: Number(event.target.value) })}

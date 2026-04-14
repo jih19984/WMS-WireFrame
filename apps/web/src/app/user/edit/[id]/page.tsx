@@ -31,8 +31,8 @@ export default function UserEditPage() {
 
   return (
     <>
-      <PageHeader title={`${user.name} 수정`} description="역할, 소속, 직책 정보를 수정합니다." />
-      <Card>
+      <PageHeader title={`${user.name} 수정`} />
+      <Card className="registration-surface registration-card">
         <CardContent className="pt-5">
           <UserForm
             initialValues={{

@@ -24,12 +24,20 @@ export function WorklogList({ worklogs }: { worklogs: Worklog[] }) {
             key={worklog.id}
             className="group relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-border"
           >
-            <CardContent className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0 space-y-4">
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={worklog.status} />
-                  <ImportanceBadge importance={worklog.importance} />
-                </div>
+            <CardContent className="grid gap-x-8 gap-y-5 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:grid-rows-[auto_1fr_auto]">
+              <div className="flex items-center gap-2 lg:col-start-1 lg:row-start-1">
+                <StatusBadge status={worklog.status} />
+                <ImportanceBadge importance={worklog.importance} />
+              </div>
+
+              <div className="text-left lg:col-start-2 lg:row-start-1 lg:text-right">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+                  마감일
+                </p>
+                <p className="mt-1 text-sm font-semibold text-foreground/90">{worklog.dueDate}</p>
+              </div>
+
+              <div className="min-w-0 space-y-4 lg:col-start-1 lg:row-start-2">
                 <div>
                   <p className="text-[18px] font-[700] tracking-[-0.03em] text-foreground transition-colors group-hover:text-primary">
                     {worklog.title}
@@ -42,13 +50,17 @@ export function WorklogList({ worklogs }: { worklogs: Worklog[] }) {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col items-start gap-3 lg:items-end">
-                <div className="rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-left lg:text-right">
-                  <p className="text-[13px] font-semibold text-foreground">{team?.name}</p>
-                  <p className="mt-1 text-[12px] text-muted-foreground">마감 {worklog.dueDate}</p>
-                </div>
+
+              <div className="flex items-center gap-2 text-sm lg:col-start-1 lg:row-start-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+                  팀
+                </span>
+                <span className="font-medium text-foreground/92">{team?.name}</span>
+              </div>
+
+              <div className="flex flex-col items-start gap-3 lg:col-start-2 lg:row-start-3 lg:items-end">
                 {author ? (
-                  <div className="hidden items-center gap-2.5 rounded-full border border-border/70 bg-muted/35 px-2 py-1.5 md:flex">
+                  <div className="flex items-center gap-2.5">
                     <Avatar className="size-7">
                       <AvatarImage src={author.profileImage} alt={author.name} />
                       <AvatarFallback className="bg-primary/20 text-[10px] font-bold text-primary">

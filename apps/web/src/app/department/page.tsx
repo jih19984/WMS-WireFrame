@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
+import { Pagination } from "@/app/_common/components/Pagination";
 import { RoleGate } from "@/app/_common/components/RoleGate";
+import { usePagination } from "@/app/_common/hooks/usePagination";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { canManageDepartments } from "@/app/_common/service/access-control";
 import { useDepartment } from "@/app/department/_hooks/useDepartment";
@@ -27,6 +29,7 @@ export default function DepartmentPage() {
   const visibleUsers = isDirector
     ? users
     : users.filter((member) => member.departmentId === user.departmentId);
+  const departmentPagination = usePagination(departments, 2);
 
   return (
     <RoleGate allow={["DIRECTOR", "DEPT_HEAD"]}>
@@ -70,8 +73,13 @@ export default function DepartmentPage() {
             부서 생성과 삭제 정책은 본부장 전용입니다. 삭제 제약은 현재 화면에서 정책 안내 문구로 표현합니다.
           </p>
           <DepartmentList
-            departments={departments}
+            departments={departmentPagination.items}
             readOnly={!canManageDepartment}
+          />
+          <Pagination
+            page={departmentPagination.page}
+            totalPages={departmentPagination.totalPages}
+            onPageChange={departmentPagination.setPage}
           />
         </div>
       </div>

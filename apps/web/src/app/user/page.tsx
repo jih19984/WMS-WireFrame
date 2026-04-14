@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
+import { Pagination } from "@/app/_common/components/Pagination";
+import { usePagination } from "@/app/_common/hooks/usePagination";
 import { canManageUsers } from "@/app/_common/service/access-control";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { useUser } from "@/app/user/_hooks/useUser";
@@ -10,6 +12,7 @@ export default function UserPage() {
   const { user } = useAuth();
   const { users } = useUser();
   const canManage = canManageUsers(user);
+  const userPagination = usePagination(users, 6);
 
   return (
     <>
@@ -26,7 +29,12 @@ export default function UserPage() {
       />
       <div className="space-y-4">
         <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">사용자 목록</h2>
-        <UserList users={users} readOnly={!canManage} />
+        <UserList users={userPagination.items} readOnly={!canManage} />
+        <Pagination
+          page={userPagination.page}
+          totalPages={userPagination.totalPages}
+          onPageChange={userPagination.setPage}
+        />
       </div>
     </>
   );

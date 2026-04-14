@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
+import { Pagination } from "@/app/_common/components/Pagination";
+import { usePagination } from "@/app/_common/hooks/usePagination";
 import { canManageTeams, isTeamLead } from "@/app/_common/service/access-control";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { useTeam } from "@/app/team/_hooks/useTeam";
@@ -22,6 +24,8 @@ export default function TeamPage() {
   );
   const canManage = canManageTeams(user);
   const readOnly = !canManage;
+  const teamPagination = usePagination(teams, 4);
+  const memberPagination = usePagination(myMembers, 6);
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,7 +45,12 @@ export default function TeamPage() {
         <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
           {canManage ? "가시 범위 내 팀 목록" : "소속 팀 정보"}
         </h2>
-        <TeamList teams={teams} readOnly={readOnly} />
+        <TeamList teams={teamPagination.items} readOnly={readOnly} />
+        <Pagination
+          page={teamPagination.page}
+          totalPages={teamPagination.totalPages}
+          onPageChange={teamPagination.setPage}
+        />
       </div>
 
       {isTeamLead(user) ? (
@@ -49,7 +58,12 @@ export default function TeamPage() {
           <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
             팀 구성원 명단
           </h2>
-          <UserList users={myMembers} readOnly />
+          <UserList users={memberPagination.items} readOnly />
+          <Pagination
+            page={memberPagination.page}
+            totalPages={memberPagination.totalPages}
+            onPageChange={memberPagination.setPage}
+          />
         </div>
       ) : null}
     </div>

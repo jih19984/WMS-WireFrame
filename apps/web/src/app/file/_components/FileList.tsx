@@ -8,11 +8,13 @@ export function FileList({
   title,
   description,
   onDelete,
+  totalCount,
 }: {
   files: FileItem[];
   title: string;
   description: string;
   onDelete: (file: FileItem) => void;
+  totalCount?: number;
 }) {
   return (
     <Card>
@@ -22,7 +24,7 @@ export function FileList({
             <CardTitle>{title}</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           </div>
-          <Badge variant="outline">{files.length}건</Badge>
+          <Badge variant="outline">{totalCount ?? files.length}건</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">

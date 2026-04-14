@@ -16,6 +16,7 @@ export function UserForm({
   onSubmit: (values: UserFormValues) => Promise<void> | void;
   submitLabel: string;
 }) {
+  const controlClassName = "border-black/80 dark:border-white/80";
   const [values, setValues] = useState<UserFormValues>(
     initialValues ?? {
       name: "",
@@ -57,7 +58,7 @@ export function UserForm({
 
   return (
     <form
-      className="flex max-w-3xl flex-col"
+      className="registration-surface flex max-w-3xl flex-col"
       onSubmit={async (event) => {
         event.preventDefault();
         await onSubmit(values);
@@ -65,17 +66,18 @@ export function UserForm({
     >
       <Field label="기본 정보" description="사용자의 이름, 이메일 주소, 프로필 이미지를 입력합니다.">
         <div className="flex w-full items-center gap-4">
-          <Input placeholder="이름" value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} />
-          <Input placeholder="이메일" value={values.email} onChange={(event) => setValues({ ...values, email: event.target.value })} />
-          <Input placeholder="프로필 URL (opt)" value={values.profileImage} onChange={(event) => setValues({ ...values, profileImage: event.target.value })} />
+          <Input className={controlClassName} placeholder="이름" value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} />
+          <Input className={controlClassName} placeholder="이메일" value={values.email} onChange={(event) => setValues({ ...values, email: event.target.value })} />
+          <Input className={controlClassName} placeholder="프로필 URL (opt)" value={values.profileImage} onChange={(event) => setValues({ ...values, profileImage: event.target.value })} />
         </div>
       </Field>
 
       <Field label="직무 및 권한" description="직급, 직책과 시스템 접근 권한 등급을 지정합니다.">
         <div className="flex w-full items-center gap-4">
-          <Input placeholder="직급 (예: 대리)" value={values.position} onChange={(event) => setValues({ ...values, position: event.target.value })} />
-          <Input placeholder="직책 (예: 개발자)" value={values.title} onChange={(event) => setValues({ ...values, title: event.target.value })} />
+          <Input className={controlClassName} placeholder="직급 (예: 대리)" value={values.position} onChange={(event) => setValues({ ...values, position: event.target.value })} />
+          <Input className={controlClassName} placeholder="직책 (예: 개발자)" value={values.title} onChange={(event) => setValues({ ...values, title: event.target.value })} />
           <Select
+            className={controlClassName}
             value={values.role}
             options={[
               { label: getRoleLabel("DIRECTOR"), value: "DIRECTOR" },
@@ -91,6 +93,7 @@ export function UserForm({
       <Field label="소속 부서 및 팀" description="해당 사용자가 주로 활동할 부서와 팀을 지정하세요.">
         <div className="flex w-full items-center gap-4">
           <Select
+            className={controlClassName}
             value={String(values.departmentId)}
             options={departmentOptions}
             onChange={(event) => {
@@ -106,6 +109,7 @@ export function UserForm({
             }}
           />
           <Select
+            className={controlClassName}
             value={String(values.primaryTeamId)}
             options={teamOptions}
             onChange={(event) => setValues({ ...values, primaryTeamId: Number(event.target.value) })}
@@ -114,7 +118,7 @@ export function UserForm({
       </Field>
 
       <Field label="복수 팀 소속" description="대시보드와 알림 기본값은 주 소속 팀 기준이지만 여러 팀에 동시 소속될 수 있습니다.">
-        <div className="grid gap-2 rounded-xl border border-white/10 bg-white/5 p-4 md:grid-cols-2">
+        <div className="registration-panel grid gap-2 rounded-xl border border-white/10 bg-white/5 p-4 md:grid-cols-2">
           {teamOptions.map((team) => (
             <label key={team.value} className="flex items-center gap-3 rounded-xl bg-background px-3 py-2 text-sm transition-all hover:bg-white/5">
               <Checkbox
@@ -129,8 +133,9 @@ export function UserForm({
 
       <Field label="인사 정보" description="사용자의 연락처와 재직 상태, 입사일을 관리합니다.">
         <div className="flex w-full items-center gap-4">
-          <Input placeholder="연락처" value={values.phone} onChange={(event) => setValues({ ...values, phone: event.target.value })} />
+          <Input className={controlClassName} placeholder="연락처" value={values.phone} onChange={(event) => setValues({ ...values, phone: event.target.value })} />
           <Select
+            className={controlClassName}
             value={values.employmentStatus}
             options={[
               { label: getEmploymentStatusLabel("ACTIVE"), value: "ACTIVE" },
@@ -145,6 +150,7 @@ export function UserForm({
             }
           />
           <Input
+            className={controlClassName}
             type="date"
             value={values.joinDate}
             onChange={(event) => setValues({ ...values, joinDate: event.target.value })}

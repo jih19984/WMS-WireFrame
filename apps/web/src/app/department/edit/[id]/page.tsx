@@ -19,8 +19,8 @@ export default function DepartmentEditPage() {
 
   return (
     <RoleGate allow={["DIRECTOR"]}>
-      <PageHeader title={`${department.name} 수정`} description="부서 설명과 부서장을 수정합니다." />
-      <Card>
+      <PageHeader title={`${department.name} 수정`} />
+      <Card className="registration-surface registration-card">
         <CardContent className="pt-5">
           <DepartmentForm
             initialValues={{

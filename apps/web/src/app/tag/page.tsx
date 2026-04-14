@@ -10,7 +10,6 @@ export default function TagPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="태그"
-        description="AI가 재사용하는 관리형 태그 풀을 검토하고, 병합 후보와 신규 태그 검토 흐름을 와이어프레임으로 확인합니다."
       />
       <div className="space-y-4">
         <div className="flex items-center justify-between">

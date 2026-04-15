@@ -1,4 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 @theme inline {
@@ -45,7 +46,7 @@
 
 :root {
   color-scheme: light;
-  --font-display-family: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-display-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", sans-serif;
   --font-mono-family: "IBM Plex Mono", monospace;
   --background: #f4f6fc;
   --foreground: #0f172a;
@@ -310,23 +311,15 @@ pre {
 .registration-surface input,
 .registration-surface select,
 .registration-surface textarea {
-  border-color: rgba(0, 0, 0, 0.82) !important;
+  border-color: color-mix(in srgb, var(--border) 88%, transparent) !important;
+  background: color-mix(in srgb, var(--input) 100%, transparent) !important;
+  box-shadow: 0 6px 18px -14px rgba(15, 23, 42, 0.32) !important;
 }
 
 .registration-surface .registration-card,
 .registration-surface .registration-panel {
-  border-color: rgba(0, 0, 0, 0.82) !important;
-}
-
-.dark .registration-surface input,
-.dark .registration-surface select,
-.dark .registration-surface textarea {
-  border-color: rgba(255, 255, 255, 0.82) !important;
-}
-
-.dark .registration-surface .registration-card,
-.dark .registration-surface .registration-panel {
-  border-color: rgba(255, 255, 255, 0.82) !important;
+  border-color: color-mix(in srgb, var(--border) 84%, transparent) !important;
+  background: color-mix(in srgb, var(--muted) 34%, transparent) !important;
 }
 
 .workspace-empty {

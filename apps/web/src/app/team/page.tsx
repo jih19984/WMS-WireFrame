@@ -9,6 +9,7 @@ import { useUser } from "@/app/user/_hooks/useUser";
 import { TeamList } from "@/app/team/_components/TeamList";
 import { UserList } from "@/app/user/_components/UserList";
 import { Button } from "@/components/ui/button";
+import { CardSpotlight } from "@/components/ui/card-spotlight";
 
 export default function TeamPage() {
   const { user } = useAuth();
@@ -17,6 +18,9 @@ export default function TeamPage() {
 
   if (!user) return null;
 
+  const visibleTeams = canManageTeams(user)
+    ? teams
+    : teams.filter((team) => user.teamIds.includes(team.id));
   const myTeams = teams.filter((team) => user.teamIds.includes(team.id));
   const myTeamIds = myTeams.map((team) => team.id);
   const myMembers = users.filter((member) =>
@@ -24,8 +28,10 @@ export default function TeamPage() {
   );
   const canManage = canManageTeams(user);
   const readOnly = !canManage;
-  const teamPagination = usePagination(teams, 4);
+  const visibleMembers = canManage ? users : myMembers;
+  const teamPagination = usePagination(visibleTeams, 3);
   const memberPagination = usePagination(myMembers, 6);
+  const activeTeams = visibleTeams.filter((team) => team.status === "ACTIVE").length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,16 +47,33 @@ export default function TeamPage() {
         }
       />
 
+      <div className="grid gap-4 md:grid-cols-3">
+        <CardSpotlight className="rounded-[24px] p-5">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Teams</p>
+          <p className="mt-2 text-lg font-semibold">{visibleTeams.length}개</p>
+        </CardSpotlight>
+        <CardSpotlight className="rounded-[24px] p-5">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Active Teams</p>
+          <p className="mt-2 text-lg font-semibold">{activeTeams}개</p>
+        </CardSpotlight>
+        <CardSpotlight className="rounded-[24px] p-5">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Members</p>
+          <p className="mt-2 text-lg font-semibold">{visibleMembers.length}명</p>
+        </CardSpotlight>
+      </div>
+
       <div className="space-y-4 py-4 mt-2">
         <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
-          {canManage ? "가시 범위 내 팀 목록" : "소속 팀 정보"}
+          {canManage ? "팀 목록" : "소속 팀 목록"}
         </h2>
         <TeamList teams={teamPagination.items} readOnly={readOnly} />
-        <Pagination
-          page={teamPagination.page}
-          totalPages={teamPagination.totalPages}
-          onPageChange={teamPagination.setPage}
-        />
+        {teamPagination.totalPages > 1 ? (
+          <Pagination
+            page={teamPagination.page}
+            totalPages={teamPagination.totalPages}
+            onPageChange={teamPagination.setPage}
+          />
+        ) : null}
       </div>
 
       {isTeamLead(user) ? (

@@ -42,7 +42,10 @@ export default function WorklogEditPage() {
           attachmentNames: files
             .filter((file) => worklog.fileIds.includes(file.id) && !file.isDeleted)
             .map((file) => file.originalName),
-          aiRegenerate: false,
+          tagIds: worklog.tagIds,
+          aiSummary: worklog.aiSummary,
+          aiSummaryEdited: worklog.aiSummaryEdited,
+          aiRegenerateRequested: false,
         }}
         currentWorklogId={worklog.id}
         submitLabel="수정 저장"

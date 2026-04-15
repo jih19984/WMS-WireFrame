@@ -15,5 +15,8 @@ export interface WorklogFormValues {
   authorId: number;
   dependencyIds: number[];
   attachmentNames: string[];
-  aiRegenerate: boolean;
+  tagIds: number[];
+  aiSummary?: string;
+  aiSummaryEdited?: boolean;
+  aiRegenerateRequested?: boolean;
 }

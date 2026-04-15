@@ -1,17 +1,24 @@
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import {
   BadgeCheck,
   Building2,
   CalendarDays,
+  Image,
   KeyRound,
+  LogOut,
   Mail,
   Phone,
   Save,
   ShieldCheck,
+  UserRound,
   Users,
 } from "lucide-react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
+import {
+  RegistrationField,
+  RegistrationFormPanel,
+} from "@/app/_common/components/RegistrationFormPanel";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { departments, teams } from "@/app/_common/service/mock-db";
 import { userService } from "@/app/user/_service/user.service";
@@ -19,7 +26,6 @@ import type { UserProfile } from "@/app/user/_types/user.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import {
@@ -34,6 +40,7 @@ type Feedback = {
 };
 
 export default function ProfilePage() {
+  const controlClassName = "h-14 rounded-2xl px-4 text-base";
   const navigate = useNavigate();
   const { user, refreshUser, logout } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -203,220 +210,201 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col gap-6 pb-10">
       <PageHeader
-        title="프로필 설정"
-        description="내 계정에서 직접 바꿀 수 있는 항목과, 관리자 기준으로 관리되는 인사 정보를 한 번에 확인합니다."
+        title="프로필"
         actions={
           <Button
             variant="outline"
-            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+            className="h-11 rounded-2xl px-5"
             onClick={() => {
               logout();
               navigate("/login");
             }}
           >
+            <LogOut className="size-4" />
             로그아웃
           </Button>
         }
       />
 
-      <section className="grid gap-5 xl:grid-cols-[1.05fr_1fr]">
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle>내 계정</CardTitle>
-            <CardDescription>
-              기본 프로필과 권한 상태를 먼저 확인할 수 있습니다.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col gap-5 rounded-[24px] border border-white/8 bg-white/[0.03] p-5 md:flex-row md:items-center">
-              <Avatar className="size-20 border border-white/10 bg-white/10">
-                <AvatarImage src={profileImage || profile.profileImage} alt={profile.name} />
-                <AvatarFallback className="bg-white/10 text-xl font-bold text-white">
-                  {profile.name.slice(0, 1)}
-                </AvatarFallback>
-              </Avatar>
+      <section className="registration-surface w-full max-w-[1480px] pb-10">
+        <RegistrationFormPanel
+          eyebrow="MY PROFILE"
+          title="프로필 정보 및 계정 설정"
+          icon={<UserRound className="size-4" />}
+          className="min-h-[720px]"
+        >
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.18fr)_minmax(420px,0.9fr)]">
+            <div className="space-y-7">
+              <section className="flex flex-col gap-5 rounded-[24px] border border-border/70 bg-muted/20 p-5 md:flex-row md:items-center">
+                <Avatar className="size-24 border border-border bg-muted">
+                  <AvatarImage src={profileImage || profile.profileImage} alt={profile.name} />
+                  <AvatarFallback className="bg-muted text-2xl font-bold text-foreground">
+                    {profile.name.slice(0, 1)}
+                  </AvatarFallback>
+                </Avatar>
 
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-[24px] font-bold tracking-[-0.05em] text-white">
-                    {profile.name}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[28px] font-bold tracking-[-0.06em] text-foreground">
+                      {profile.name}
+                    </p>
+                    <Badge variant="secondary">{getRoleLabel(profile.role)}</Badge>
+                    <Badge
+                      variant={
+                        profile.employmentStatus === "ACTIVE"
+                          ? "success"
+                          : profile.employmentStatus === "LEAVE"
+                            ? "warning"
+                            : "outline"
+                      }
+                    >
+                      {getEmploymentStatusLabel(profile.employmentStatus)}
+                    </Badge>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{profile.email}</p>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                    주 소속 팀 <span className="font-semibold text-foreground">{primaryTeamName}</span>
                   </p>
-                  <Badge variant="secondary">{getRoleLabel(profile.role)}</Badge>
-                  <Badge
-                    variant={
-                      profile.employmentStatus === "ACTIVE"
-                        ? "success"
-                        : profile.employmentStatus === "LEAVE"
-                          ? "warning"
-                          : "outline"
-                    }
-                  >
-                    {getEmploymentStatusLabel(profile.employmentStatus)}
-                  </Badge>
                 </div>
-                <p className="mt-2 text-sm text-white/58">{profile.email}</p>
-                <p className="mt-3 text-sm leading-6 text-white/70">
-                  주 소속 팀은 <span className="font-semibold text-white">{primaryTeamName}</span>이며,
-                  대시보드와 알림 기준으로 함께 사용됩니다.
+              </section>
+
+              <section className="space-y-5">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  직접 수정 가능
                 </p>
-              </div>
-            </div>
+                <RegistrationField label="프로필 이미지 URL">
+                  <div className="relative">
+                    <Image className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      className={`${controlClassName} pl-11`}
+                      value={profileImage}
+                      onChange={(event) => setProfileImage(event.target.value)}
+                      placeholder="프로필 이미지 URL을 입력하세요."
+                    />
+                  </div>
+                </RegistrationField>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <ReadOnlyInfo icon={Mail} label="이메일" value={profile.email} />
-              <ReadOnlyInfo icon={CalendarDays} label="입사일" value={formatDate(profile.joinDate)} />
-              <ReadOnlyInfo icon={Building2} label="소속 부서" value={departmentName} />
-              <ReadOnlyInfo icon={Users} label="주 소속 팀" value={primaryTeamName} />
-              <ReadOnlyInfo icon={Users} label="소속 팀 목록" value={teamNames} />
-              <ReadOnlyInfo icon={BadgeCheck} label="직급 / 직책" value={`${profile.position} · ${profile.title}`} />
-              <ReadOnlyInfo icon={ShieldCheck} label="권한 역할" value={getRoleLabel(profile.role)} />
-              <ReadOnlyInfo icon={BadgeCheck} label="상태" value={getEmploymentStatusLabel(profile.employmentStatus)} />
-            </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <RegistrationField label="연락처">
+                    <div className="relative">
+                      <Phone className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        className={`${controlClassName} pl-11`}
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                        placeholder="연락처를 입력하세요."
+                      />
+                    </div>
+                  </RegistrationField>
 
-            <div className="rounded-[18px] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm leading-6 text-white/58">
-              인사 정보와 권한 항목은 관리자 권한 기준으로 관리되며, 실제 수정은 사용자 관리 화면에서 진행됩니다.
-            </div>
-          </CardContent>
-        </Card>
+                  <RegistrationField label="주 소속 팀">
+                    <Select
+                      className={controlClassName}
+                      value={String(profile.primaryTeamId)}
+                      options={availableTeamOptions}
+                      onChange={(event) => {
+                        const nextPrimaryTeamId = Number(event.target.value);
+                        setProfile((current) =>
+                          current
+                            ? {
+                                ...current,
+                                primaryTeamId: nextPrimaryTeamId,
+                              }
+                            : current,
+                        );
+                      }}
+                    />
+                  </RegistrationField>
+                </div>
 
-        <div className="grid gap-5">
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle>직접 수정 가능한 항목</CardTitle>
-              <CardDescription>
-                프로필 이미지와 연락처는 내 계정 편의를 위해 직접 수정할 수 있습니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FieldGroup
-                label="프로필 이미지 URL"
-                description="시스템 안에서 나를 식별할 프로필 이미지를 연결합니다."
-              >
-                <Input
-                  value={profileImage}
-                  onChange={(event) => setProfileImage(event.target.value)}
-                  placeholder="https://example.com/avatar.png"
-                />
-              </FieldGroup>
+                {profileFeedback ? (
+                  <InlineFeedback type={profileFeedback.type} message={profileFeedback.message} />
+                ) : null}
 
-              <FieldGroup
-                label="연락처"
-                description="비상 연락이나 개인 확인에 사용하는 번호입니다."
-              >
-                <Input
-                  value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
-                  placeholder="010-0000-0000"
-                />
-              </FieldGroup>
+                <div className="flex justify-end pt-1">
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={isSavingProfile}
+                    className="h-12 min-w-[168px] rounded-2xl px-7 font-semibold shadow-[0_14px_40px_-20px_rgba(59,130,246,0.8)]"
+                  >
+                    <Save className="size-4" />
+                    {isSavingProfile ? "저장 중..." : "프로필 저장"}
+                  </Button>
+                </div>
+              </section>
 
-              <FieldGroup
-                label="주 소속 팀"
-                description="현재 소속된 팀 안에서 대시보드와 알림 기준이 되는 대표 팀을 선택합니다."
-              >
-                <Select
-                  value={String(profile.primaryTeamId)}
-                  options={availableTeamOptions}
-                  onChange={(event) => {
-                    const nextPrimaryTeamId = Number(event.target.value);
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            primaryTeamId: nextPrimaryTeamId,
-                          }
-                        : current,
-                    );
-                  }}
-                />
-              </FieldGroup>
-
-              {profileFeedback ? (
-                <InlineFeedback type={profileFeedback.type} message={profileFeedback.message} />
-              ) : null}
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
-                  <Save className="size-4" />
-                  {isSavingProfile ? "저장 중..." : "프로필 저장"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle>비밀번호 변경</CardTitle>
-              <CardDescription>
-                로그인 보안을 위해 주기적으로 비밀번호를 변경할 수 있습니다.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FieldGroup label="현재 비밀번호">
-                <Input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                  placeholder="현재 비밀번호 입력"
-                />
-              </FieldGroup>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <FieldGroup label="새 비밀번호">
+              <section className="space-y-5 border-t border-border/70 pt-6">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  비밀번호 변경
+                </p>
+                <RegistrationField label="현재 비밀번호">
                   <Input
+                    className={controlClassName}
                     type="password"
-                    value={nextPassword}
-                    onChange={(event) => setNextPassword(event.target.value)}
-                    placeholder="8자 이상 입력"
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    placeholder="현재 비밀번호를 입력하세요."
                   />
-                </FieldGroup>
+                </RegistrationField>
 
-                <FieldGroup label="새 비밀번호 확인">
-                  <Input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
-                    placeholder="한 번 더 입력"
-                  />
-                </FieldGroup>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <RegistrationField label="새 비밀번호">
+                    <Input
+                      className={controlClassName}
+                      type="password"
+                      value={nextPassword}
+                      onChange={(event) => setNextPassword(event.target.value)}
+                      placeholder="8자 이상 입력하세요."
+                    />
+                  </RegistrationField>
+
+                  <RegistrationField label="새 비밀번호 확인">
+                    <Input
+                      className={controlClassName}
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      placeholder="새 비밀번호를 한 번 더 입력하세요."
+                    />
+                  </RegistrationField>
+                </div>
+
+                {passwordFeedback ? (
+                  <InlineFeedback type={passwordFeedback.type} message={passwordFeedback.message} />
+                ) : null}
+
+                <div className="flex justify-end pt-1">
+                  <Button
+                    variant="outline"
+                    onClick={handleChangePassword}
+                    disabled={isSavingPassword}
+                    className="h-12 min-w-[168px] rounded-2xl px-7 font-semibold"
+                  >
+                    <KeyRound className="size-4" />
+                    {isSavingPassword ? "변경 중..." : "비밀번호 변경"}
+                  </Button>
+                </div>
+              </section>
+            </div>
+
+            <aside className="space-y-5 xl:border-l xl:border-border/70 xl:pl-8">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                조회 전용 인사 정보
+              </p>
+              <div className="grid gap-3">
+                <ReadOnlyInfo icon={Mail} label="이메일" value={profile.email} />
+                <ReadOnlyInfo icon={CalendarDays} label="입사일" value={formatDate(profile.joinDate)} />
+                <ReadOnlyInfo icon={Building2} label="소속 부서" value={departmentName} />
+                <ReadOnlyInfo icon={Users} label="주 소속 팀" value={primaryTeamName} />
+                <ReadOnlyInfo icon={Users} label="소속 팀 목록" value={teamNames} />
+                <ReadOnlyInfo icon={BadgeCheck} label="직급 / 직책" value={`${profile.position} · ${profile.title}`} />
+                <ReadOnlyInfo icon={ShieldCheck} label="권한 역할" value={getRoleLabel(profile.role)} />
+                <ReadOnlyInfo icon={BadgeCheck} label="상태" value={getEmploymentStatusLabel(profile.employmentStatus)} />
               </div>
-
-              {passwordFeedback ? (
-                <InlineFeedback type={passwordFeedback.type} message={passwordFeedback.message} />
-              ) : null}
-
-              <div className="flex justify-end">
-                <Button variant="outline" onClick={handleChangePassword} disabled={isSavingPassword}>
-                  <KeyRound className="size-4" />
-                  {isSavingPassword ? "변경 중..." : "비밀번호 변경"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </aside>
+          </div>
+        </RegistrationFormPanel>
       </section>
-    </div>
-  );
-}
-
-function FieldGroup({
-  label,
-  description,
-  children,
-}: {
-  label: string;
-  description?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="space-y-1">
-        <p className="text-sm font-semibold tracking-[-0.02em] text-white/88">{label}</p>
-        {description ? (
-          <p className="text-xs leading-5 text-white/48">{description}</p>
-        ) : null}
-      </div>
-      {children}
     </div>
   );
 }
@@ -431,12 +419,12 @@ function ReadOnlyInfo({
   value: string;
 }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
-      <div className="flex items-center gap-2 text-white/40">
+    <div className="rounded-[20px] border border-border/70 bg-muted/20 p-4">
+      <div className="flex items-center gap-2 text-muted-foreground">
         <Icon className="size-4" />
         <p className="text-xs font-semibold uppercase tracking-[0.16em]">{label}</p>
       </div>
-      <p className="mt-3 text-sm font-medium leading-6 text-white/88">{value}</p>
+      <p className="mt-3 text-sm font-medium leading-6 text-foreground">{value}</p>
     </div>
   );
 }
@@ -446,8 +434,8 @@ function InlineFeedback({ type, message }: Feedback) {
     <div
       className={
         type === "success"
-          ? "rounded-xl border border-emerald-400/18 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100"
-          : "rounded-xl border border-rose-400/18 bg-rose-400/10 px-4 py-3 text-sm text-rose-100"
+          ? "rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-100"
+          : "rounded-xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-600 dark:text-rose-100"
       }
     >
       {message}

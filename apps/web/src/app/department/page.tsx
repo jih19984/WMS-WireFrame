@@ -10,7 +10,7 @@ import { useTeam } from "@/app/team/_hooks/useTeam";
 import { useUser } from "@/app/user/_hooks/useUser";
 import { DepartmentList } from "@/app/department/_components/DepartmentList";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardSpotlight } from "@/components/ui/card-spotlight";
 
 export default function DepartmentPage() {
   const { user } = useAuth();
@@ -29,7 +29,7 @@ export default function DepartmentPage() {
   const visibleUsers = isDirector
     ? users
     : users.filter((member) => member.departmentId === user.departmentId);
-  const departmentPagination = usePagination(departments, 2);
+  const departmentPagination = usePagination(departments, 3);
 
   return (
     <RoleGate allow={["DIRECTOR", "DEPT_HEAD"]}>
@@ -39,24 +39,20 @@ export default function DepartmentPage() {
           description="가시 범위 안의 부서 목록과 현재 부서 운영 규모를 한 화면에서 확인합니다."
         />
 
-        <Card>
-          <CardContent className="grid gap-4 p-5 md:grid-cols-3">
-            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Scope</p>
-              <p className="mt-2 text-lg font-semibold">
-                {isDirector ? "본부 전체" : "소속 부서"}
-              </p>
-            </div>
-            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Teams</p>
-              <p className="mt-2 text-lg font-semibold">{visibleTeams.length}개</p>
-            </div>
-            <div className="rounded-xl border border-border/70 bg-muted/35 p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Users</p>
-              <p className="mt-2 text-lg font-semibold">{visibleUsers.length}명</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid gap-4 md:grid-cols-3">
+          <CardSpotlight className="rounded-[24px] p-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Departments</p>
+            <p className="mt-2 text-lg font-semibold">{departments.length}개</p>
+          </CardSpotlight>
+          <CardSpotlight className="rounded-[24px] p-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Teams</p>
+            <p className="mt-2 text-lg font-semibold">{visibleTeams.length}개</p>
+          </CardSpotlight>
+          <CardSpotlight className="rounded-[24px] p-5">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Members</p>
+            <p className="mt-2 text-lg font-semibold">{visibleUsers.length}명</p>
+          </CardSpotlight>
+        </div>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -76,11 +72,13 @@ export default function DepartmentPage() {
             departments={departmentPagination.items}
             readOnly={!canManageDepartment}
           />
-          <Pagination
-            page={departmentPagination.page}
-            totalPages={departmentPagination.totalPages}
-            onPageChange={departmentPagination.setPage}
-          />
+          {departmentPagination.totalPages > 1 ? (
+            <Pagination
+              page={departmentPagination.page}
+              totalPages={departmentPagination.totalPages}
+              onPageChange={departmentPagination.setPage}
+            />
+          ) : null}
         </div>
       </div>
     </RoleGate>

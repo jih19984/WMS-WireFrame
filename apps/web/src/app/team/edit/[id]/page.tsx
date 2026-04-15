@@ -5,7 +5,6 @@ import { RoleGate } from "@/app/_common/components/RoleGate";
 import { teams } from "@/app/_common/service/mock-db";
 import { teamService } from "@/app/team/_service/team.service";
 import { TeamForm } from "@/app/team/_components/TeamForm";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function TeamEditPage() {
   const navigate = useNavigate();
@@ -17,26 +16,22 @@ export default function TeamEditPage() {
   return (
     <RoleGate allow={["DIRECTOR", "DEPT_HEAD"]}>
       <PageHeader title={`${team.name} 수정`} />
-      <Card className="registration-surface registration-card">
-        <CardContent className="pt-5">
-          <TeamForm
-            initialValues={{
-              name: team.name,
-              departmentId: team.departmentId,
-              leaderId: team.leaderId,
-              description: team.description,
-              status: team.status,
-              startDate: team.startDate,
-              endDate: team.endDate,
-            }}
-            submitLabel="수정 저장"
-            onSubmit={async (values) => {
-              await teamService.update(team.id, values);
-              navigate("/team");
-            }}
-          />
-        </CardContent>
-      </Card>
+      <TeamForm
+        initialValues={{
+          name: team.name,
+          departmentId: team.departmentId,
+          leaderId: team.leaderId,
+          description: team.description,
+          status: team.status,
+          startDate: team.startDate,
+          endDate: team.endDate,
+        }}
+        submitLabel="수정 저장"
+        onSubmit={async (values) => {
+          await teamService.update(team.id, values);
+          navigate("/team");
+        }}
+      />
     </RoleGate>
   );
 }

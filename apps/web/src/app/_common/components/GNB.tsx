@@ -1,4 +1,4 @@
-import { Bell, ChevronRight, Moon, Plus, Search, Sun, X } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight, Moon, Plus, Search, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/_common/hooks/useAuth";
@@ -70,7 +70,7 @@ export function GNB() {
   return (
     <header className="dark workspace-topbar sticky top-0 z-50 flex w-full items-center gap-4 border-b border-white/10 px-5 py-4 shadow-[0_16px_60px_-32px_rgba(0,0,0,0.55)] lg:px-8">
       <div className="min-w-0 flex-1">
-        <div className="inline-flex items-center rounded-md border border-white/10 bg-black/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white/65">
+        <div className="inline-flex items-center rounded border border-white/10 bg-black/10 px-2 py-0.5 text-[8px] font-medium uppercase tracking-[0.13em] text-white/65">
           ibank AX 사업본부
         </div>
         <nav
@@ -158,101 +158,95 @@ export function GNB() {
             </Button>
 
             {showNotifications ? (
-              <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-[360px] rounded-2xl border border-border/80 bg-popover p-3 text-popover-foreground shadow-2xl">
-                <div className="flex items-center justify-between gap-3 px-3 py-2">
-                  <div>
-                    <p className="text-sm font-semibold tracking-[-0.03em] text-foreground">
-                      최근 알림
+              <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-[380px] overflow-hidden rounded-2xl border border-white/14 bg-[#071227] text-white shadow-[0_24px_80px_-28px_rgba(0,0,0,0.85)]">
+                <div className="flex items-center justify-between gap-3 border-b border-white/12 px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold tracking-[-0.03em] text-white">
+                      알림 센터
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      중요한 업무 흐름만 빠르게 확인할 수 있습니다.
+                    <p className="mt-0.5 text-xs text-white/55">
+                      미읽음 {unreadCount}건
                     </p>
                   </div>
-                  <Badge variant={unreadCount > 0 ? "warning" : "outline"}>
-                    {unreadCount} unread
-                  </Badge>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-white/62 hover:bg-white/10 hover:text-white"
+                    aria-label="전체 읽음 처리"
+                    disabled={unreadCount === 0}
+                    onClick={async () => {
+                      await markAllRead();
+                    }}
+                  >
+                    <CheckCheck className="size-4" />
+                  </Button>
                 </div>
 
-                <div className="workspace-list px-1 py-2">
+                <div className="divide-y divide-white/12">
                   {recentNotifications.length > 0 ? (
                     recentNotifications.map((notification) => (
                       <button
                         key={notification.id}
                         type="button"
-                        className="workspace-panel-soft group rounded-xl p-4 text-left transition-all hover:border-border hover:bg-accent/50"
+                        className="group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/8"
                         onClick={async () => {
                           await markRead(notification.id);
                           setShowNotifications(false);
                           navigate(notification.deepLink);
                         }}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={
-                                  notification.isRead
-                                    ? "outline"
-                                    : notification.type === "URGENT"
-                                      ? "destructive"
-                                      : notification.type === "DEADLINE"
-                                        ? "warning"
-                                        : "default"
-                                }
-                              >
-                                {notificationTypeLabelMap[notification.type]}
-                              </Badge>
-                              {!notification.isRead ? (
-                                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-                                  new
-                                </span>
-                              ) : null}
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold tracking-[-0.02em] text-foreground">
-                                {notification.title}
-                              </p>
-                              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                {notification.content}
-                              </p>
-                            </div>
-                            <p className="text-[11px] text-muted-foreground">
-                              {formatDateTime(notification.createdAt)}
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant={
+                                notification.isRead
+                                  ? "outline"
+                                  : notification.type === "URGENT"
+                                    ? "destructive"
+                                    : notification.type === "DEADLINE"
+                                      ? "warning"
+                                      : "default"
+                              }
+                              className="border-white/12"
+                            >
+                              {notificationTypeLabelMap[notification.type]}
+                            </Badge>
+                            <Badge
+                              variant={notification.isRead ? "outline" : "secondary"}
+                              className="border-white/12"
+                            >
+                              {notification.isRead ? "읽음" : "미읽음"}
+                            </Badge>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold tracking-[-0.02em] text-white">
+                              {notification.title}
+                            </p>
+                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/62">
+                              {notification.content}
                             </p>
                           </div>
-
-                          <span
-                            className={cn(
-                              "flex size-8 shrink-0 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition-all",
-                              "group-hover:border-border group-hover:bg-accent/50 group-hover:text-foreground",
-                            )}
-                          >
-                            <ChevronRight className="size-4" />
-                          </span>
+                          <p className="text-[11px] text-white/45">
+                            {formatDateTime(notification.createdAt)}
+                          </p>
                         </div>
+                        <span className="mt-6 flex size-8 shrink-0 items-center justify-center rounded-xl text-white/35 transition-all group-hover:bg-white/10 group-hover:text-white">
+                          <ChevronRight className="size-4" />
+                        </span>
                       </button>
                     ))
                   ) : (
-                    <div className="workspace-empty rounded-lg px-5 py-10 text-center text-sm">
+                    <div className="px-5 py-10 text-center text-sm text-white/60">
                       새로운 알림이 없습니다.
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 border-t border-border/70 px-2 pt-3">
-                  <Button
-                    variant="ghost"
-                    className="flex-1 justify-center"
-                    onClick={async () => {
-                      await markAllRead();
-                    }}
-                  >
-                    <X className="size-4" />
-                    전체 읽음 처리
-                  </Button>
+                <div className="border-t border-white/12 p-3">
                   <Button
                     variant="outline"
-                    className="flex-1 justify-center"
+                    className="h-10 w-full justify-center border-white/12 bg-white/6 text-white hover:bg-white/10"
                     onClick={() => {
                       setShowNotifications(false);
                       navigate("/notification");

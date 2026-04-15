@@ -11,7 +11,7 @@ export function FileList({
   onToggleSelect: (fileId: number, checked: boolean) => void;
 }) {
   return (
-    <div className="workspace-list worklog-divider-top gap-0">
+    <div className="grid gap-3">
       {files.length === 0 ? (
         <div className="workspace-empty rounded-xl px-6 py-10 text-center text-sm">
           조건에 맞는 파일이 없습니다.

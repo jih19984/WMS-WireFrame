@@ -7,6 +7,7 @@ import {
   getNextWorklogId,
   notifications,
   notifyMockDb,
+  tags,
   teams,
   type FileRecord,
   type WorklogRecord,
@@ -48,6 +49,41 @@ function buildStoredPath(worklogId: number, teamId: number, filename: string) {
       .replace(/^-|-$/g, "") ?? "TEAM";
   const timestamp = new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
   return `${departmentCode}/${teamCode}/2026/04/${worklogId}_${filename}_${timestamp}`;
+}
+
+function inferAiTagIds(
+  values: Pick<WorklogFormValues, "title" | "requestContent" | "workContent">,
+  selectedTagIds: number[],
+) {
+  const selectedSet = new Set(selectedTagIds);
+  const searchableText = [values.title, values.requestContent, values.workContent]
+    .join(" ")
+    .toLowerCase();
+  const matchedTagIds = tags
+    .filter((tag) => {
+      if (selectedSet.has(tag.id)) return false;
+
+      const tagName = tag.name.toLowerCase();
+      return searchableText.includes(tagName);
+    })
+    .map((tag) => tag.id);
+  const fallbackTagIds = tags
+    .filter((tag) => tag.source === "AI" && !selectedSet.has(tag.id))
+    .map((tag) => tag.id);
+
+  return Array.from(new Set([...matchedTagIds, ...fallbackTagIds])).slice(0, 3);
+}
+
+function mergeSelectedAndAiTags(
+  values: Pick<
+    WorklogFormValues,
+    "title" | "requestContent" | "workContent" | "tagIds"
+  >,
+) {
+  const selectedTagIds = values.tagIds ?? [];
+  return Array.from(
+    new Set([...selectedTagIds, ...inferAiTagIds(values, selectedTagIds)]),
+  );
 }
 
 function syncFiles(
@@ -188,17 +224,22 @@ export const worklogService = {
     return target ? { ...target } : undefined;
   },
   async create(values: WorklogFormValues) {
+    const {
+      attachmentNames,
+      tagIds: _tagIds,
+      aiSummary: _aiSummary,
+      aiSummaryEdited: _aiSummaryEdited,
+      aiRegenerateRequested: _aiRegenerateRequested,
+      ...worklogValues
+    } = values;
     const today = new Date().toISOString().slice(0, 10);
     const created: Worklog = {
       id: getNextWorklogId(),
       completionDate: values.status === "DONE" ? today : undefined,
-      aiSummary:
-        values.aiRegenerate || values.attachmentNames.length > 0
-          ? "AI 파이프라인 mock 상태가 시작되었으며 요약 재생성을 대기 중입니다."
-          : "새로 생성된 업무입니다. AI 파이프라인 mock 상태는 PENDING으로 시작합니다.",
+      aiSummary: "업무 저장 직후 AI 파이프라인 mock 상태가 시작되며 요약/태그/임베딩을 비동기로 처리합니다.",
       aiSummaryEdited: false,
-      aiStatus: values.aiRegenerate ? "PROCESSING" : "PENDING",
-      tagIds: [],
+      aiStatus: "PROCESSING",
+      tagIds: mergeSelectedAndAiTags(values),
       fileIds: [],
       isDeleted: false,
       createdAt: new Date().toISOString(),
@@ -212,10 +253,10 @@ export const worklogService = {
           changedAt: new Date().toISOString(),
         },
       ],
-      ...values,
+      ...worklogValues,
     };
 
-    syncFiles(created, values.attachmentNames, values.authorId);
+    syncFiles(created, attachmentNames, values.authorId);
     worklogs.unshift(created);
     addUrgentNotifications(created);
     notifyMockDb();
@@ -224,6 +265,14 @@ export const worklogService = {
   async update(id: number, values: WorklogFormValues) {
     const target = worklogs.find((worklog) => worklog.id === id);
     if (!target) return undefined;
+    const {
+      attachmentNames,
+      tagIds,
+      aiSummary,
+      aiSummaryEdited,
+      aiRegenerateRequested,
+      ...worklogValues
+    } = values;
 
     if (
       hasCircularDependency(
@@ -238,28 +287,44 @@ export const worklogService = {
     const previousStatus = target.status;
     const statusChanged = previousStatus !== values.status;
     const today = new Date().toISOString().slice(0, 10);
+    const nextAttachmentNames = normalizeAttachmentNames(attachmentNames);
+    const currentAttachmentNames = normalizeAttachmentNames(
+      files
+        .filter((file) => target.fileIds.includes(file.id) && !file.isDeleted)
+        .map((file) => file.originalName),
+    );
+    const attachmentsChanged =
+      nextAttachmentNames.length !== currentAttachmentNames.length ||
+      nextAttachmentNames.some((name, index) => name !== currentAttachmentNames[index]);
+    const contentChanged =
+      target.title !== values.title ||
+      target.workContent !== values.workContent ||
+      target.requestContent !== values.requestContent;
+    const shouldReprocess = contentChanged || attachmentsChanged || Boolean(aiRegenerateRequested);
+    const summaryChanged =
+      aiSummary !== undefined && aiSummary.trim() !== target.aiSummary.trim();
 
-    Object.assign(target, values, {
+    Object.assign(target, worklogValues, {
       dependencyIds: values.dependencyIds.filter((dependencyId) => dependencyId !== id),
       updatedAt: new Date().toISOString(),
       completionDate: values.status === "DONE" ? today : undefined,
-      aiStatus:
-        values.aiRegenerate ||
-        target.workContent !== values.workContent ||
-        target.requestContent !== values.requestContent
-          ? "PROCESSING"
-          : target.aiStatus,
-      aiSummary:
-        values.aiRegenerate ||
-        target.workContent !== values.workContent ||
-        target.requestContent !== values.requestContent
-          ? "업무 내용 변경이 감지되어 AI 요약을 다시 계산하는 mock 상태입니다."
-          : target.aiSummary,
-      aiSummaryEdited:
-        values.aiRegenerate && target.aiSummaryEdited ? false : target.aiSummaryEdited,
+      aiStatus: shouldReprocess ? "PROCESSING" : target.aiStatus,
+      aiSummary: shouldReprocess
+        ? aiRegenerateRequested
+          ? "사용자가 AI 요약 재생성을 요청하여 요약/태그/임베딩을 다시 계산하는 mock 상태입니다."
+          : "업무 내용 또는 첨부 파일 변경이 감지되어 AI 요약/태그/임베딩을 다시 계산하는 mock 상태입니다."
+        : aiSummary ?? target.aiSummary,
+      aiSummaryEdited: shouldReprocess
+        ? false
+        : summaryChanged
+          ? true
+          : aiSummaryEdited ?? target.aiSummaryEdited,
+      tagIds: shouldReprocess
+        ? mergeSelectedAndAiTags({ ...values, tagIds })
+        : Array.from(new Set(tagIds)),
     });
 
-    syncFiles(target, values.attachmentNames, values.authorId);
+    syncFiles(target, attachmentNames, values.authorId);
 
     if (statusChanged) {
       target.statusHistory.unshift({

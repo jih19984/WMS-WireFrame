@@ -5,7 +5,6 @@ import { RoleGate } from "@/app/_common/components/RoleGate";
 import { departments } from "@/app/_common/service/mock-db";
 import { departmentService } from "@/app/department/_service/department.service";
 import { DepartmentForm } from "@/app/department/_components/DepartmentForm";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function DepartmentEditPage() {
   const navigate = useNavigate();
@@ -20,22 +19,18 @@ export default function DepartmentEditPage() {
   return (
     <RoleGate allow={["DIRECTOR"]}>
       <PageHeader title={`${department.name} 수정`} />
-      <Card className="registration-surface registration-card">
-        <CardContent className="pt-5">
-          <DepartmentForm
-            initialValues={{
-              name: department.name,
-              description: department.description,
-              leaderId: department.leaderId,
-            }}
-            submitLabel="수정 저장"
-            onSubmit={async (values) => {
-              await departmentService.update(department.id, values);
-              navigate("/department");
-            }}
-          />
-        </CardContent>
-      </Card>
+      <DepartmentForm
+        initialValues={{
+          name: department.name,
+          description: department.description,
+          leaderId: department.leaderId,
+        }}
+        submitLabel="수정 저장"
+        onSubmit={async (values) => {
+          await departmentService.update(department.id, values);
+          navigate("/department");
+        }}
+      />
     </RoleGate>
   );
 }

@@ -139,7 +139,7 @@ export function Sidebar() {
         <div className="mt-auto px-2 pb-2 pt-6">
           <Suspense
             fallback={
-              <div className="h-[26rem] rounded-[2rem] bg-white/[0.03] ring-1 ring-white/6" />
+              <div className="h-[23rem] rounded-[1.75rem] bg-white/[0.03] ring-1 ring-white/6" />
             }
           >
             <SidebarLanyard

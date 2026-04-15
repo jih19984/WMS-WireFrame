@@ -3,7 +3,6 @@ import { PageHeader } from "@/app/_common/components/PageHeader";
 import { RoleGate } from "@/app/_common/components/RoleGate";
 import { departmentService } from "@/app/department/_service/department.service";
 import { DepartmentForm } from "@/app/department/_components/DepartmentForm";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function DepartmentCreatePage() {
   const navigate = useNavigate();
@@ -11,17 +10,13 @@ export default function DepartmentCreatePage() {
   return (
     <RoleGate allow={["DIRECTOR"]}>
       <PageHeader title="부서 등록" />
-      <Card className="registration-surface registration-card">
-        <CardContent className="pt-5">
-          <DepartmentForm
-            submitLabel="부서 생성"
-            onSubmit={async (values) => {
-              await departmentService.create(values);
-              navigate("/department");
-            }}
-          />
-        </CardContent>
-      </Card>
+      <DepartmentForm
+        submitLabel="부서 생성"
+        onSubmit={async (values) => {
+          await departmentService.create(values);
+          navigate("/department");
+        }}
+      />
     </RoleGate>
   );
 }

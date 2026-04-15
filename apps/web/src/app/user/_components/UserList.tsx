@@ -4,17 +4,23 @@ import type { UserProfile } from "@/app/user/_types/user.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CardSpotlight } from "@/components/ui/card-spotlight";
 import { getEmploymentStatusLabel, getRoleLabel } from "@/lib/utils";
 
 export function UserList({ users, readOnly = false }: { users: UserProfile[]; readOnly?: boolean }) {
   return (
-    <div className="workspace-list worklog-divider-top gap-0">
+    <div className="grid gap-3">
+      {users.length === 0 ? (
+        <div className="workspace-empty rounded-xl px-6 py-10 text-center text-sm">
+          조건에 맞는 사용자가 없습니다.
+        </div>
+      ) : null}
       {users.map((user) => (
-        <article
+        <CardSpotlight
           key={user.id}
-          className="worklog-divider-item group relative py-4.5 last:border-b-0"
+          className="group relative rounded-[24px] transition-transform duration-300 hover:-translate-y-1"
         >
-          <div className="grid gap-x-8 gap-y-4 px-1 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+          <div className="grid gap-x-8 gap-y-4 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
             <div className="min-w-0 space-y-3">
               <div className="flex items-start gap-4">
                 <Avatar className="size-12 ring-1 ring-white/8">
@@ -90,7 +96,7 @@ export function UserList({ users, readOnly = false }: { users: UserProfile[]; re
               </div>
             </div>
           </div>
-        </article>
+        </CardSpotlight>
       ))}
     </div>
   );

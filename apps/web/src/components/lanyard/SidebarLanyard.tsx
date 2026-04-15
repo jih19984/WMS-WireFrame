@@ -71,7 +71,7 @@ export function SidebarLanyard({
     <div className={cn("sidebar-lanyard-shell", className)}>
       <div className="sidebar-lanyard-canvas">
         <Canvas
-          camera={{ position: [0, 0, 17.1], fov: 20.6 }}
+          camera={{ position: [0, 0, 18.4], fov: 19.8 }}
           dpr={[1, isCompact ? 1.35 : 1.85]}
           gl={{ alpha: true, antialias: true }}
           onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), 0)}
@@ -312,8 +312,8 @@ function Band({
         >
           <CuboidCollider args={[0.8, 1.125, 0.04]} />
           <group
-            scale={2.38}
-            position={[0, -1.1, -0.05]}
+            scale={2.08}
+            position={[0, -1, -0.05]}
             onPointerDown={(event: any) => {
               event.target.setPointerCapture(event.pointerId);
               dragPointerRef.current = {
@@ -377,7 +377,7 @@ function Band({
         <MeshLineMaterialElement
           color="white"
           depthTest={false}
-          lineWidth={0.72}
+          lineWidth={0.64}
           map={strapTexture}
           repeat={[-4, 1]}
           resolution={isCompact ? [800, 1200] : [1000, 1400]}
@@ -523,7 +523,7 @@ function drawCardOverlay(
   drawCanvasText(context, userName, BADGE_BASE_WIDTH / 2, 1000, {
     align: "center",
     color: "#ffffff",
-    font: "800 102px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    font: "800 102px 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Segoe UI', sans-serif",
     shadowBlur: 16,
     shadowColor: "rgba(15, 23, 42, 0.22)",
   });
@@ -535,7 +535,7 @@ function drawCardOverlay(
   drawCanvasText(context, roleLabel, BADGE_BASE_WIDTH / 2, 1096, {
     align: "center",
     color: "#1d4ed8",
-    font: "800 44px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    font: "800 44px 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Segoe UI', sans-serif",
   });
 
   context.restore();

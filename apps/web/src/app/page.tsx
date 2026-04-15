@@ -24,8 +24,8 @@ import { useTeam } from "@/app/team/_hooks/useTeam";
 import { useUser } from "@/app/user/_hooks/useUser";
 import { useWorklog } from "@/app/worklog/_hooks/useWorklog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardSpotlight } from "@/components/ui/card-spotlight";
 import {
   cn,
   formatDate,
@@ -201,8 +201,8 @@ export default function DashboardPage() {
             />
           </section>
 
-          <section className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-            <Card>
+          <section className="grid gap-5 lg:grid-cols-2">
+            <CardSpotlight className="h-[360px] rounded-[26px]">
               <CardHeader>
                 <CardTitle>업무 상태 분포</CardTitle>
               </CardHeader>
@@ -221,9 +221,9 @@ export default function DashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
-            </Card>
+            </CardSpotlight>
 
-            <Card>
+            <CardSpotlight className="h-[360px] rounded-[26px]">
               <CardHeader>
                 <CardTitle>마감 임박 및 지연</CardTitle>
               </CardHeader>
@@ -232,7 +232,10 @@ export default function DashboardPage() {
                   const isOverdue = overdueWorklogs.some((item) => item.id === worklog.id);
 
                   return (
-                    <div key={worklog.id} className="rounded-lg border border-border bg-card p-4">
+                    <div
+                      key={worklog.id}
+                      className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                    >
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="font-medium">{worklog.title}</p>
@@ -253,17 +256,20 @@ export default function DashboardPage() {
                   );
                 })}
               </CardContent>
-            </Card>
+            </CardSpotlight>
           </section>
 
-          <section className="grid gap-5 lg:grid-cols-[1.25fr_0.95fr]">
-            <Card>
+          <section className="grid gap-5 lg:grid-cols-2">
+            <CardSpotlight className="h-[360px] rounded-[26px]">
               <CardHeader>
                 <CardTitle>부서별 업무 부하</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {departmentWorkload.map((department) => (
-                  <div key={department.id} className="rounded-lg border border-border bg-card p-4">
+                  <div
+                    key={department.id}
+                    className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                  >
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">{department.name}</p>
@@ -285,15 +291,18 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </CardContent>
-            </Card>
+            </CardSpotlight>
 
-            <Card>
+            <CardSpotlight className="h-[360px] rounded-[26px]">
               <CardHeader>
                 <CardTitle>최근 알림</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {notifications.slice(0, 4).map((notification) => (
-                  <div key={notification.id} className="rounded-lg border border-border bg-card p-4">
+                  <div
+                    key={notification.id}
+                    className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                  >
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">{notification.title}</p>
@@ -304,7 +313,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </CardContent>
-            </Card>
+            </CardSpotlight>
           </section>
         </>
       ) : (
@@ -341,13 +350,16 @@ export default function DashboardPage() {
           </section>
 
           <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-            <Card>
+            <CardSpotlight className="rounded-[26px]">
               <CardHeader>
                 <CardTitle>진행중 업무</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {inProgressWorklogs.map((worklog) => (
-                  <div key={worklog.id} className="rounded-lg border border-border bg-card p-4">
+                  <div
+                    key={worklog.id}
+                    className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
@@ -371,15 +383,18 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </CardContent>
-            </Card>
+            </CardSpotlight>
 
-            <Card>
+            <CardSpotlight className="rounded-[26px]">
               <CardHeader>
                 <CardTitle>최근 완료 및 알림</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {recentCompletedWorklogs.map((worklog) => (
-                  <div key={worklog.id} className="rounded-lg border border-border bg-card p-4">
+                  <div
+                    key={worklog.id}
+                    className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                  >
                     <p className="font-medium">{worklog.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       완료일 {worklog.completionDate ? formatDate(worklog.completionDate) : "-"}
@@ -387,24 +402,30 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {notifications.slice(0, 2).map((notification) => (
-                  <div key={notification.id} className="rounded-lg border border-border bg-card p-4">
+                  <div
+                    key={notification.id}
+                    className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                  >
                     <p className="font-medium">{notification.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{notification.content}</p>
                   </div>
                 ))}
               </CardContent>
-            </Card>
+            </CardSpotlight>
           </section>
 
           {isTeamLead ? (
             <section>
-              <Card>
+              <CardSpotlight className="rounded-[26px]">
                 <CardHeader>
                   <CardTitle>팀원 업무 현황 요약</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-3 md:grid-cols-2">
                   {teamMemberSummary.map((member) => (
-                    <div key={member.id} className="rounded-lg border border-border bg-card p-4">
+                    <div
+                      key={member.id}
+                      className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                    >
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="font-medium">{member.name}</p>
@@ -419,7 +440,7 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </CardContent>
-              </Card>
+              </CardSpotlight>
             </section>
           ) : null}
         </>

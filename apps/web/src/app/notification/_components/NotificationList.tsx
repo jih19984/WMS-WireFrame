@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import type { NotificationItem } from "@/app/notification/_types/notification.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { CardSpotlight } from "@/components/ui/card-spotlight";
 import { formatDateTime } from "@/lib/utils";
 
 const notificationTypeLabelMap: Record<NotificationItem["type"], string> = {
@@ -15,10 +16,8 @@ const notificationTypeLabelMap: Record<NotificationItem["type"], string> = {
 
 export function NotificationList({
   notifications,
-  onRead,
 }: {
   notifications: NotificationItem[];
-  onRead: (id: number) => Promise<void>;
 }) {
   if (notifications.length === 0) {
     return (
@@ -31,12 +30,19 @@ export function NotificationList({
   return (
     <div className="workspace-list">
       {notifications.map((notification) => (
-        <Card key={notification.id}>
-          <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between">
+        <CardSpotlight
+          key={notification.id}
+          className="rounded-[24px] transition-transform duration-300 hover:-translate-y-1"
+        >
+          <CardContent className="flex flex-col gap-4 p-5">
             <div className="min-w-0 space-y-3">
-              <div className="flex items-center gap-2">
-                <Badge variant={notification.isRead ? "outline" : "default"}>{notificationTypeLabelMap[notification.type]}</Badge>
-                {!notification.isRead ? <Badge variant="secondary">읽지 않음</Badge> : null}
+              <div className="flex items-start justify-between gap-3">
+                <Badge variant={notification.isRead ? "outline" : "default"}>
+                  {notificationTypeLabelMap[notification.type]}
+                </Badge>
+                <Badge variant={notification.isRead ? "outline" : "secondary"}>
+                  {notification.isRead ? "읽음" : "미읽음"}
+                </Badge>
               </div>
               <p className="text-[18px] font-semibold tracking-[-0.03em] text-foreground">
                 {notification.title}
@@ -54,23 +60,16 @@ export function NotificationList({
                 ) : null}
               </div>
             </div>
-            <div className="flex flex-row gap-2 lg:flex-col lg:items-end">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={async () => {
-                  await onRead(notification.id);
-                }}
+            <div className="flex justify-end">
+              <Link
+                to={notification.deepLink}
+                className="inline-flex h-10 items-center rounded-2xl border border-border/70 px-4 text-sm font-medium text-primary transition-colors hover:bg-muted/40"
               >
-                {notification.isRead ? "읽음 유지" : "읽음 처리"}
-              </Button>
-              <Link to={notification.deepLink} className="text-sm font-medium text-primary">
                 관련 화면 이동
               </Link>
             </div>
           </CardContent>
-        </Card>
+        </CardSpotlight>
       ))}
     </div>
   );

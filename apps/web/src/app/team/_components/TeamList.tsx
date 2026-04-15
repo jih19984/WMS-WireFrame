@@ -3,7 +3,8 @@ import { departments, users } from "@/app/_common/service/mock-db";
 import type { Team } from "@/app/team/_types/team.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardSpotlight } from "@/components/ui/card-spotlight";
 import { getTeamStatusLabel } from "@/lib/utils";
 
 export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?: boolean }) {
@@ -13,9 +14,9 @@ export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?
         const department = departments.find((item) => item.id === team.departmentId);
         const leader = users.find((item) => item.id === team.leaderId);
         return (
-          <Card
+          <CardSpotlight
             key={team.id}
-            className="relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-border"
+            className="relative overflow-hidden rounded-[26px] transition-transform duration-300 hover:-translate-y-1"
           >
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between gap-3">
@@ -30,34 +31,34 @@ export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm">
+                <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">부서</p>
                   <p className="truncate text-[15px] font-[500]">{department?.name}</p>
                 </div>
-                <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm">
+                <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">팀리더</p>
                   <p className="truncate text-[15px] font-[500]">{leader?.name}</p>
                 </div>
-                <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm">
+                <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">구성원</p>
                   <p className="truncate text-[15px] font-[500]">{team.members.length}명</p>
                 </div>
               </div>
-              <div className="rounded-xl border border-border/70 bg-muted/35 p-4 text-sm text-muted-foreground">
+              <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm text-muted-foreground">
                 {team.operationNote}
               </div>
               <div className="flex items-center justify-end gap-2">
-                <Button variant="outline" asChild>
+                <Button variant="secondary" asChild>
                   <Link to={`/team/detail/${team.id}`}>상세</Link>
                 </Button>
                 {!readOnly && (
-                  <Button variant="outline" asChild>
+                  <Button variant="default" asChild>
                     <Link to={`/team/edit/${team.id}`}>수정</Link>
                   </Button>
                 )}
               </div>
             </CardContent>
-          </Card>
+          </CardSpotlight>
         );
       })}
     </div>

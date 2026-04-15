@@ -32,31 +32,27 @@ export default function UserEditPage() {
   return (
     <>
       <PageHeader title={`${user.name} 수정`} />
-      <Card className="registration-surface registration-card">
-        <CardContent className="pt-5">
-          <UserForm
-            initialValues={{
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              departmentId: user.departmentId,
-              teamIds: user.teamIds,
-              primaryTeamId: user.primaryTeamId,
-              position: user.position,
-              title: user.title,
-              phone: user.phone,
-              employmentStatus: user.employmentStatus,
-              joinDate: user.joinDate,
-              profileImage: user.profileImage,
-            }}
-            submitLabel="수정 저장"
-            onSubmit={async (values) => {
-              await userService.update(user.id, values);
-              navigate("/user");
-            }}
-          />
-        </CardContent>
-      </Card>
+      <UserForm
+        initialValues={{
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          departmentId: user.departmentId,
+          teamIds: user.teamIds,
+          primaryTeamId: user.primaryTeamId,
+          position: user.position,
+          title: user.title,
+          phone: user.phone,
+          employmentStatus: user.employmentStatus,
+          joinDate: user.joinDate,
+          profileImage: user.profileImage,
+        }}
+        submitLabel="수정 저장"
+        onSubmit={async (values) => {
+          await userService.update(user.id, values);
+          navigate("/user");
+        }}
+      />
     </>
   );
 }

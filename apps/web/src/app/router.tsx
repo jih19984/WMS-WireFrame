@@ -3,6 +3,7 @@ import { QueryProvider } from "@/app/_common/providers/QueryProvider";
 import AppLayout from "@/app/layout";
 import DashboardPage from "@/app/page";
 import LoginPage from "@/app/login/page";
+import SignupPage from "@/app/signup/page";
 import DepartmentPage from "@/app/department/page";
 import DepartmentCreatePage from "@/app/department/create/page";
 import DepartmentEditPage from "@/app/department/edit/[id]/page";
@@ -28,6 +29,7 @@ const withProvider = (element: React.ReactNode) => <QueryProvider>{element}</Que
 
 export const router = createBrowserRouter([
   { path: "/login", element: withProvider(<LoginPage />) },
+  { path: "/signup", element: withProvider(<SignupPage />) },
   {
     path: "/",
     element: withProvider(<AppLayout />),

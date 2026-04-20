@@ -3,6 +3,7 @@ import {
   getNextEvaluationId,
   getNextUserId,
   notifyMockDb,
+  teams,
   users,
 } from "@/app/_common/service/mock-db";
 import type { UserEvaluation, UserFormValues, UserProfile } from "@/app/user/_types/user.types";
@@ -26,6 +27,62 @@ export const userService = {
     users.push(created);
     notifyMockDb();
     return created;
+  },
+  async signup(values: {
+    departmentId: number;
+    name: string;
+    email: string;
+    password: string;
+    position: string;
+    joinDate: string;
+    profileImage: string;
+    phone: string;
+  }) {
+    const normalizedEmail = values.email.trim().toLowerCase();
+    const emailExists = users.some(
+      (user) => user.email.trim().toLowerCase() === normalizedEmail,
+    );
+
+    if (emailExists) {
+      return {
+        ok: false as const,
+        message: "이미 사용 중인 이메일입니다.",
+      };
+    }
+
+    const departmentTeams = teams.filter(
+      (team) => team.departmentId === values.departmentId && team.status === "ACTIVE",
+    );
+    const primaryTeamId = departmentTeams[0]?.id ?? 0;
+    const now = new Date().toISOString();
+
+    const created: UserProfile = {
+      id: getNextUserId(),
+      name: values.name.trim(),
+      email: normalizedEmail,
+      password: values.password,
+      role: "MEMBER",
+      departmentId: values.departmentId,
+      primaryTeamId,
+      teamIds: primaryTeamId ? [primaryTeamId] : [],
+      position: values.position.trim(),
+      title: "팀원",
+      phone: values.phone.trim(),
+      employmentStatus: "ACTIVE",
+      joinDate: values.joinDate,
+      profileImage: values.profileImage.trim(),
+      skills: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    users.push(created);
+    notifyMockDb();
+
+    return {
+      ok: true as const,
+      user: created,
+    };
   },
   async update(id: number, values: UserFormValues) {
     const target = users.find((user) => user.id === id);

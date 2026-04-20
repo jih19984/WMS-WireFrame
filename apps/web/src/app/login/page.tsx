@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { users } from "@/app/_common/service/mock-db";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { getRoleLabel } from "@/lib/utils";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const samples = useMemo(() => {
     const roles = ["DIRECTOR", "DEPT_HEAD", "TEAM_LEAD", "MEMBER"];
@@ -20,11 +21,27 @@ export default function LoginPage() {
   const [email, setEmail] = useState(samples[0]?.email ?? "");
   const [password, setPassword] = useState(samples[0]?.password ?? "password123");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    const state = location.state as
+      | { registeredEmail?: string; signupMessage?: string }
+      | undefined;
+
+    if (!state?.registeredEmail) return;
+
+    setEmail(state.registeredEmail);
+    setPassword("");
+    setError("");
+    setSuccess(state.signupMessage ?? "회원가입이 완료되었습니다. 로그인해주세요.");
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
     const result = login(email, password);
     if (!result) {
+      setSuccess("");
       setError("이메일 또는 비밀번호를 확인해주세요. 샘플 계정은 기본 비밀번호 `password123`을 사용합니다.");
       return;
     }
@@ -91,11 +108,26 @@ export default function LoginPage() {
                 </div>
               ) : null}
 
+              {success ? (
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/12 px-4 py-3 text-[14px] leading-6 text-emerald-100">
+                  {success}
+                </div>
+              ) : null}
+
               <Button
                 type="submit"
                 className="h-14 w-full rounded-xl border-0 bg-[#3553b6] text-[15px] font-semibold text-white shadow-[0_18px_36px_-20px_rgba(53,83,182,0.65)] transition-all hover:bg-[#2d4699]"
               >
                 로그인
+              </Button>
+
+              <Button
+                asChild
+                type="button"
+                variant="outline"
+                className="h-14 w-full rounded-xl border-white/10 bg-white/4 text-[15px] font-semibold text-white shadow-[0_14px_34px_-22px_rgba(0,0,0,0.55)] transition-all hover:bg-white/8"
+              >
+                <Link to="/signup">회원가입</Link>
               </Button>
             </form>
           </div>

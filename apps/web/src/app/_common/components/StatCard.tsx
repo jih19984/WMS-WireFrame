@@ -38,7 +38,7 @@ export function StatCard({
     <CardSpotlight className="h-full rounded-[26px] transition-transform duration-300 hover:-translate-y-1">
       <div className="flex min-h-[188px] flex-col gap-6 p-6">
         <div className="flex w-full items-center justify-between">
-          <p className="text-sm font-medium tracking-[-0.02em] text-muted-foreground">{label}</p>
+          <p className="text-[15px] font-medium tracking-[-0.02em] text-muted-foreground">{label}</p>
           <div
             className={cn(
               "flex size-11 items-center justify-center rounded-2xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
@@ -49,10 +49,10 @@ export function StatCard({
           </div>
         </div>
         <div className="flex flex-1 flex-col justify-end space-y-2">
-          <p className="text-[36px] font-semibold leading-none tracking-[-0.06em] text-foreground">
+          <p className="text-[40px] font-semibold leading-none tracking-[-0.06em] text-foreground">
             {value}
           </p>
-          <p className="max-w-[20rem] text-sm leading-6 text-muted-foreground">{hint}</p>
+          <p className="max-w-[20rem] text-[15px] leading-7 text-muted-foreground">{hint}</p>
         </div>
       </div>
     </CardSpotlight>

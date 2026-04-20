@@ -85,7 +85,9 @@ export const searchService = {
           metadata: {
             departmentName: departmentName ?? "-",
             status: getWorklogStatusLabel(worklog.status),
+            statusCode: worklog.status,
             importance: getImportanceLabel(worklog.importance),
+            importanceCode: worklog.importance,
             tagNames: tags
               .filter((tag) => worklog.tagIds.includes(tag.id))
               .map((tag) => tag.name),
@@ -160,9 +162,11 @@ export const searchService = {
             status: linkedWorklog
               ? getWorklogStatusLabel(linkedWorklog.status)
               : undefined,
+            statusCode: linkedWorklog?.status,
             importance: linkedWorklog
               ? getImportanceLabel(linkedWorklog.importance)
               : undefined,
+            importanceCode: linkedWorklog?.importance,
             tagNames: linkedWorklog
               ? tags
                   .filter((tag) => linkedWorklog.tagIds.includes(tag.id))

@@ -14,12 +14,14 @@ export function TeamMemberList({ memberIds }: { memberIds: number[] }) {
               <AvatarImage src={member.profileImage} alt={member.name} />
               <AvatarFallback>{member.name.slice(0, 1)}</AvatarFallback>
             </Avatar>
-            <div>
-              <p className="font-medium">{member.name}</p>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-medium">{member.name}</p>
+                <Badge variant="outline">{member.position}</Badge>
+              </div>
               <p className="text-sm text-muted-foreground">{member.title}</p>
             </div>
           </div>
-          <Badge variant="outline">{member.position}</Badge>
         </div>
       ))}
     </div>

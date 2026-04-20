@@ -18,7 +18,7 @@ export function PageHeader({
       <div className="space-y-2">
         <h1 className="sr-only">{title}</h1>
         {description ? (
-          <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+          <p className="max-w-3xl text-[15px] leading-7 text-muted-foreground">
             {description}
           </p>
         ) : null}

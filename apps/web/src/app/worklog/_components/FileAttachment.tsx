@@ -1,6 +1,5 @@
 import { files } from "@/app/_common/service/mock-db";
-import { Badge } from "@/components/ui/badge";
-import { getAiStatusLabel } from "@/lib/utils";
+import { FileAiStatusBadge } from "@/app/file/_components/FileAiStatusBadge";
 
 export function FileAttachment({ fileIds }: { fileIds: number[] }) {
   const attached = files.filter((file) => fileIds.includes(file.id));
@@ -15,9 +14,7 @@ export function FileAttachment({ fileIds }: { fileIds: number[] }) {
               <p className="mt-1 text-sm text-muted-foreground">{file.summaryPreview}</p>
               <p className="mt-2 text-xs text-muted-foreground">{file.type} / {file.size}</p>
             </div>
-            <Badge variant={file.aiStatus === "DONE" ? "success" : file.aiStatus === "FAILED" ? "destructive" : "secondary"}>
-              {getAiStatusLabel(file.aiStatus)}
-            </Badge>
+            <FileAiStatusBadge status={file.aiStatus} />
           </div>
         </div>
       ))}

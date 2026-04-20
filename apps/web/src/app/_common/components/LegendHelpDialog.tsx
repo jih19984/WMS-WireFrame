@@ -75,19 +75,19 @@ export function LegendHelpDialog({
       >
         <div
           className={cn(
-            "absolute -top-2 h-4 w-4 rotate-45 border border-slate-800 bg-[#020617] shadow-sm dark:border-slate-200 dark:bg-white",
+            "absolute -top-2 h-4 w-4 rotate-45 border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#020617]",
             align === "end" ? "right-3" : "left-3",
           )}
         />
-        <div className="relative rounded-2xl border border-slate-800 bg-[#020617] p-4 text-slate-50 shadow-2xl dark:border-slate-200 dark:bg-white dark:text-slate-950">
+        <div className="relative rounded-2xl border border-slate-200 bg-white p-4 text-slate-950 shadow-2xl dark:border-slate-800 dark:bg-[#020617] dark:text-slate-50">
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-slate-50 dark:text-slate-950">{title}</h3>
-            <p className="text-sm leading-6 text-slate-300 dark:text-slate-600">{description}</p>
+            <h3 className="text-sm font-semibold text-slate-950 dark:text-slate-50">{title}</h3>
+            <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{description}</p>
           </div>
           <div className="mt-4 space-y-5">
             {sections.map((section) => (
               <section key={section.title} className="space-y-3">
-                <h4 className="text-sm font-semibold text-slate-100 dark:text-slate-900">{section.title}</h4>
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{section.title}</h4>
                 <div className="flex flex-wrap gap-2">{section.content}</div>
               </section>
             ))}

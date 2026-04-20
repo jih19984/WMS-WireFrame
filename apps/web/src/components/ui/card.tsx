@@ -27,14 +27,14 @@ export function CardTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn("text-lg font-semibold tracking-[-0.03em]", className)} {...props} />;
+  return <h3 className={cn("text-[1.2rem] font-semibold tracking-[-0.03em]", className)} {...props} />;
 }
 
 export function CardDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn("text-[13px] leading-[1.6] tracking-[-0.01em] text-muted-foreground", className)} {...props} />;
+  return <p className={cn("text-[14px] leading-[1.65] tracking-[-0.01em] text-muted-foreground", className)} {...props} />;
 }
 
 export function CardContent({

@@ -1,7 +1,6 @@
 import type { Worklog } from "@/app/worklog/_types/worklog.types";
-import { Badge } from "@/components/ui/badge";
+import { FileAiStatusBadge } from "@/app/file/_components/FileAiStatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAiStatusLabel } from "@/lib/utils";
 
 export function AiSummaryCard({ worklog }: { worklog: Worklog }) {
   return (
@@ -9,9 +8,7 @@ export function AiSummaryCard({ worklog }: { worklog: Worklog }) {
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <CardTitle>AI 요약</CardTitle>
-          <Badge variant={worklog.aiStatus === "FAILED" ? "destructive" : worklog.aiStatus === "PENDING" ? "outline" : "secondary"}>
-            {getAiStatusLabel(worklog.aiStatus)}
-          </Badge>
+          <FileAiStatusBadge status={worklog.aiStatus} />
         </div>
       </CardHeader>
       <CardContent className="space-y-2">

@@ -5,7 +5,6 @@ import {
   CalendarDays,
   Image,
   KeyRound,
-  LogOut,
   Mail,
   Phone,
   Save,
@@ -13,7 +12,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
 import {
   RegistrationField,
@@ -41,8 +40,7 @@ type Feedback = {
 
 export default function ProfilePage() {
   const controlClassName = "h-14 rounded-2xl px-4 text-base";
-  const navigate = useNavigate();
-  const { user, refreshUser, logout } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileImage, setProfileImage] = useState("");
   const [phone, setPhone] = useState("");
@@ -209,22 +207,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-6 pb-10">
-      <PageHeader
-        title="프로필"
-        actions={
-          <Button
-            variant="outline"
-            className="h-11 rounded-2xl px-5"
-            onClick={() => {
-              logout();
-              navigate("/login");
-            }}
-          >
-            <LogOut className="size-4" />
-            로그아웃
-          </Button>
-        }
-      />
+      <PageHeader title="프로필" />
 
       <section className="registration-surface w-full max-w-[1480px] pb-10">
         <RegistrationFormPanel
@@ -266,6 +249,7 @@ export default function ProfilePage() {
                     주 소속 팀 <span className="font-semibold text-foreground">{primaryTeamName}</span>
                   </p>
                 </div>
+
               </section>
 
               <section className="space-y-5">

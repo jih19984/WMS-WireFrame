@@ -1,3 +1,8 @@
+import type {
+  ImportanceLevel,
+  WorklogStatus,
+} from "@/app/_common/types/api.types";
+
 export interface SearchFiltersValue {
   sourceType: string;
   departmentId: string;
@@ -23,7 +28,9 @@ export interface SearchResultItem {
   metadata: {
     departmentName: string;
     status?: string;
+    statusCode?: WorklogStatus;
     importance?: string;
+    importanceCode?: ImportanceLevel;
     tagNames: string[];
     fileType?: string;
     aiStatus?: string;

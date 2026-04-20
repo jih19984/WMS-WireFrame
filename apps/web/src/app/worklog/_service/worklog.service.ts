@@ -17,9 +17,10 @@ import type { Worklog, WorklogFormValues } from "@/app/worklog/_types/worklog.ty
 
 const nextMap: Record<WorklogRecord["status"], WorklogRecord["status"][]> = {
   PENDING: ["IN_PROGRESS"],
-  IN_PROGRESS: ["DONE", "ON_HOLD", "CANCELLED"],
-  ON_HOLD: ["IN_PROGRESS"],
+  IN_PROGRESS: ["DONE", "ON_HOLD", "FAILED", "CANCELLED"],
+  ON_HOLD: ["IN_PROGRESS", "FAILED"],
   DONE: [],
+  FAILED: ["IN_PROGRESS"],
   CANCELLED: [],
 };
 

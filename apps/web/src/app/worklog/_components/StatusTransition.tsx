@@ -8,9 +8,10 @@ import { getWorklogStatusLabel } from "@/lib/utils";
 
 const nextMap: Record<WorklogStatus, WorklogStatus[]> = {
   PENDING: ["IN_PROGRESS"],
-  IN_PROGRESS: ["DONE", "ON_HOLD", "CANCELLED"],
-  ON_HOLD: ["IN_PROGRESS"],
+  IN_PROGRESS: ["DONE", "ON_HOLD", "FAILED", "CANCELLED"],
+  ON_HOLD: ["IN_PROGRESS", "FAILED"],
   DONE: [],
+  FAILED: ["IN_PROGRESS"],
   CANCELLED: [],
 };
 

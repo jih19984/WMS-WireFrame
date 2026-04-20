@@ -6,6 +6,7 @@ import { Pagination } from "@/app/_common/components/Pagination";
 import { useTag } from "@/app/tag/_hooks/useTag";
 import { TagStateBadge } from "@/app/tag/_components/TagStateBadge";
 import { tagService } from "@/app/tag/_service/tag.service";
+import { getTagSourceBadgeClass } from "@/app/tag/_utils/tag-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -226,8 +227,9 @@ export function TagManager({ canManage }: { canManage: boolean }) {
             <CardSpotlight
               key={tag.id}
               className={cn(
-                "rounded-[24px] transition-transform duration-300 hover:-translate-y-1",
-                checked && "ring-2 ring-primary/60 ring-offset-2 ring-offset-background"
+                "rounded-[24px] border-border/75 transition-transform duration-300 hover:-translate-y-1",
+                checked &&
+                  "border-blue-300 bg-blue-50/90 ring-2 ring-blue-400/55 ring-offset-2 ring-offset-background shadow-[0_18px_40px_-22px_rgba(37,99,235,0.45)] dark:border-sky-300/45 dark:bg-sky-300/10 dark:ring-sky-300/45 dark:shadow-[0_18px_40px_-22px_rgba(56,189,248,0.4)]"
               )}
             >
               <button
@@ -252,13 +254,33 @@ export function TagManager({ canManage }: { canManage: boolean }) {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">{sourceLabelMap[tag.source]}</Badge>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "border px-2.5 py-0.5 font-medium",
+                        getTagSourceBadgeClass(tag.source),
+                      )}
+                    >
+                      {sourceLabelMap[tag.source]}
+                    </Badge>
                     {tag.mergeTargetId ? (
-                      <Badge variant="outline">병합 대상 #{tag.mergeTargetId}</Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-slate-300 bg-slate-100 text-slate-700 shadow-sm dark:border-slate-300/45 dark:bg-slate-200/12 dark:text-slate-100"
+                      >
+                        병합 대상 #{tag.mergeTargetId}
+                      </Badge>
                     ) : null}
                   </div>
 
-                  <div className="rounded-2xl border border-dashed border-border/60 bg-muted/25 p-3 text-sm text-muted-foreground">
+                  <div
+                    className={cn(
+                      "rounded-2xl border border-dashed p-3 text-sm",
+                      checked
+                        ? "border-blue-200 bg-blue-50/75 text-slate-700 dark:border-sky-300/30 dark:bg-sky-300/10 dark:text-slate-200"
+                        : "border-border/60 bg-muted/25 text-muted-foreground",
+                    )}
+                  >
                     {tag.reuseHint}
                   </div>
                 </CardContent>

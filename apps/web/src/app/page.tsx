@@ -5,11 +5,13 @@ import {
   Clock3,
   Users,
 } from "lucide-react";
+import { useState } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -22,6 +24,9 @@ import { useDepartment } from "@/app/department/_hooks/useDepartment";
 import { useNotification } from "@/app/notification/_hooks/useNotification";
 import { useTeam } from "@/app/team/_hooks/useTeam";
 import { useUser } from "@/app/user/_hooks/useUser";
+import { ImportanceBadge } from "@/app/worklog/_components/ImportanceBadge";
+import { StatusBadge } from "@/app/worklog/_components/StatusBadge";
+import { WorklogPreviewDialog } from "@/app/worklog/_components/WorklogPreviewDialog";
 import { useWorklog } from "@/app/worklog/_hooks/useWorklog";
 import { Badge } from "@/components/ui/badge";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,21 +40,6 @@ import {
   getWorklogStatusLabel,
 } from "@/lib/utils";
 
-const statusVariantMap = {
-  DONE: "success",
-  ON_HOLD: "warning",
-  IN_PROGRESS: "default",
-  PENDING: "outline",
-  CANCELLED: "destructive",
-} as const;
-
-const importanceVariantMap = {
-  URGENT: "destructive",
-  HIGH: "warning",
-  NORMAL: "secondary",
-  LOW: "outline",
-} as const;
-
 function daysUntil(date: string) {
   const diff = new Date(date).getTime() - new Date("2026-04-13T00:00:00").getTime();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
@@ -62,6 +52,7 @@ export default function DashboardPage() {
   const { users } = useUser();
   const { teams } = useTeam();
   const { departments } = useDepartment();
+  const [previewWorklogId, setPreviewWorklogId] = useState<number | null>(null);
 
   if (!user) return null;
 
@@ -90,6 +81,7 @@ export default function DashboardPage() {
   const recentCompletedWorklogs = worklogs
     .filter((worklog) => worklog.status === "DONE")
     .slice(0, 4);
+  const completedCount = worklogs.filter((worklog) => worklog.status === "DONE").length;
   const totalHours = worklogs.reduce((sum, worklog) => sum + worklog.actualHours, 0);
   const aiFailedCount = worklogs.filter((worklog) => worklog.aiStatus === "FAILED").length;
 
@@ -106,13 +98,13 @@ export default function DashboardPage() {
     },
     {
       name: "완료",
-      value: recentCompletedWorklogs.length,
+      value: completedCount,
       fill: "#84e7a5",
     },
     {
-      name: "보류",
-      value: worklogs.filter((worklog) => worklog.status === "ON_HOLD").length,
-      fill: "#c1b0ff",
+      name: "지연",
+      value: overdueWorklogs.length,
+      fill: "#fb7185",
     },
   ];
 
@@ -172,7 +164,7 @@ export default function DashboardPage() {
         <>
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              label="가시 범위 업무"
+              label="진행 중인 업무"
               value={worklogs.length}
               hint="권한 범위 내 전체 업무"
               icon={BarChart3}
@@ -204,19 +196,23 @@ export default function DashboardPage() {
           <section className="grid gap-5 lg:grid-cols-2">
             <CardSpotlight className="h-[360px] rounded-[26px]">
               <CardHeader>
-                <CardTitle>업무 상태 분포</CardTitle>
+                <CardTitle>업무 상태 및 리스크</CardTitle>
               </CardHeader>
               <CardContent className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={statusData} barCategoryGap={30}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                    <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={12} />
-                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
-                    <Tooltip cursor={{ fill: "var(--muted)" }} />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={13} />
+                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={13} />
+                    <Tooltip
+                      cursor={{ fill: "var(--muted)" }}
+                      formatter={(value) => [`${String(value ?? 0)}건`, "업무 수"]}
+                    />
                     <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                       {statusData.map((entry) => (
                         <Cell key={entry.name} fill={entry.fill} />
                       ))}
+                      <LabelList dataKey="value" position="top" fontSize={12} fill="var(--foreground)" />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -234,7 +230,8 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={worklog.id}
-                      className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                      className="cursor-pointer rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:border-primary/35"
+                      onClick={() => setPreviewWorklogId(worklog.id)}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
@@ -358,17 +355,14 @@ export default function DashboardPage() {
                 {inProgressWorklogs.map((worklog) => (
                   <div
                     key={worklog.id}
-                    className="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                    className="cursor-pointer rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:border-primary/35"
+                    onClick={() => setPreviewWorklogId(worklog.id)}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={statusVariantMap[worklog.status]}>
-                            {getWorklogStatusLabel(worklog.status)}
-                          </Badge>
-                          <Badge variant={importanceVariantMap[worklog.importance]}>
-                            {getImportanceLabel(worklog.importance)}
-                          </Badge>
+                          <StatusBadge status={worklog.status} />
+                          <ImportanceBadge importance={worklog.importance} />
                         </div>
                         <p className="mt-3 font-medium">{worklog.title}</p>
                         <p className="mt-1 text-sm text-muted-foreground">
@@ -445,6 +439,13 @@ export default function DashboardPage() {
           ) : null}
         </>
       )}
+      <WorklogPreviewDialog
+        open={previewWorklogId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewWorklogId(null);
+        }}
+        worklogId={previewWorklogId}
+      />
     </div>
   );
 }

@@ -979,6 +979,53 @@ export const worklogs: WorklogRecord[] = [
       },
     ],
   },
+  {
+    id: 1008,
+    title: "임베딩 재처리 배치 복구",
+    requestContent: "파일 임베딩 재처리 배치가 실패한 원인을 확인하고 복구 방안을 정리해주세요.",
+    workContent: "배치 실패 로그를 확인했고, 재처리 큐 분리와 재시도 정책 보완이 필요하다는 결론을 정리했습니다.",
+    status: "FAILED",
+    importance: "HIGH",
+    actualHours: 3.5,
+    instructionDate: "2026-04-11",
+    dueDate: "2026-04-13",
+    teamId: 14,
+    authorId: 9,
+    dependencyIds: [],
+    aiSummary: "임베딩 재처리 배치가 실패하여 원인 분석과 복구 방안 정리가 필요한 상태입니다.",
+    aiSummaryEdited: false,
+    aiStatus: "FAILED",
+    tagIds: [2, 3, 7],
+    fileIds: [],
+    isDeleted: false,
+    createdAt: "2026-04-11T14:10:00",
+    updatedAt: "2026-04-13T11:25:00",
+    statusHistory: [
+      {
+        id: 5018,
+        newStatus: "PENDING",
+        changedBy: 9,
+        reason: "업무일지 생성",
+        changedAt: "2026-04-11T14:10:00",
+      },
+      {
+        id: 5019,
+        previousStatus: "PENDING",
+        newStatus: "IN_PROGRESS",
+        changedBy: 6,
+        reason: "배치 로그 분석과 복구 검토를 시작했습니다.",
+        changedAt: "2026-04-11T15:40:00",
+      },
+      {
+        id: 5020,
+        previousStatus: "IN_PROGRESS",
+        newStatus: "FAILED",
+        changedBy: 6,
+        reason: "재처리 배치 실패 원인이 확인되어 실패 상태로 전환했습니다.",
+        changedAt: "2026-04-13T11:25:00",
+      },
+    ],
+  },
 ];
 
 export const notifications: NotificationRecord[] = [
@@ -1012,11 +1059,12 @@ export const notifications: NotificationRecord[] = [
     type: "WORKLOAD",
     title: "업무 과부하 감지",
     content: "솔루션개발사업부의 진행중 업무가 기준치를 초과했습니다.",
+    referenceId: 1001,
     isRead: true,
     readAt: "2026-04-12T09:10:00",
     createdAt: "2026-04-12T09:00:00",
     sourceScope: "DEPARTMENT",
-    deepLink: "/",
+    deepLink: "/worklog/detail/1001",
   },
   {
     id: 3004,
@@ -1048,21 +1096,22 @@ export const notifications: NotificationRecord[] = [
     type: "WORKLOAD",
     title: "부서 부하 지표를 확인해주세요",
     content: "데이터컨설팅사업부의 진행중 업무 시간이 주간 기준치를 넘겼습니다.",
+    referenceId: 1006,
     isRead: false,
     createdAt: "2026-04-13T09:00:00",
     sourceScope: "DEPARTMENT",
-    deepLink: "/",
+    deepLink: "/worklog/detail/1006",
   },
 ];
 
 let nextDepartmentId = 4;
 let nextTeamId = 15;
 let nextUserId = 13;
-let nextWorklogId = 1008;
+let nextWorklogId = 1009;
 let nextTagId = 8;
 let nextFileId = 2008;
 let nextEvaluationId = 3;
-let nextStatusHistoryId = 5018;
+let nextStatusHistoryId = 5021;
 let nextNotificationId = 3007;
 
 export function getNextDepartmentId() {

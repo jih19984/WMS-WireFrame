@@ -1,6 +1,12 @@
 export type UserRole = "DIRECTOR" | "DEPT_HEAD" | "TEAM_LEAD" | "MEMBER";
 export type EmploymentStatus = "ACTIVE" | "LEAVE" | "INACTIVE";
-export type WorklogStatus = "PENDING" | "IN_PROGRESS" | "DONE" | "ON_HOLD" | "CANCELLED";
+export type WorklogStatus =
+  | "PENDING"
+  | "IN_PROGRESS"
+  | "DONE"
+  | "ON_HOLD"
+  | "FAILED"
+  | "CANCELLED";
 export type ImportanceLevel = "URGENT" | "HIGH" | "NORMAL" | "LOW";
 export type AiProcessingStatus = "PENDING" | "PROCESSING" | "DONE" | "FAILED";
 

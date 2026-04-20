@@ -46,6 +46,7 @@ export const worklogStatusLabelMap: Record<WorklogStatus, string> = {
   IN_PROGRESS: "진행 중",
   DONE: "완료",
   ON_HOLD: "보류",
+  FAILED: "실패",
   CANCELLED: "취소",
 };
 

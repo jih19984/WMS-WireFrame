@@ -227,10 +227,10 @@ export default function WorklogPage() {
                       value={filters.status}
                       options={[
                         { label: "전체 상태", value: "all" },
-                        { label: getWorklogStatusLabel("IN_PROGRESS"), value: "IN_PROGRESS" },
-                        { label: getWorklogStatusLabel("DONE"), value: "DONE" },
-                        { label: getWorklogStatusLabel("ON_HOLD"), value: "ON_HOLD" },
-                        { label: getWorklogStatusLabel("PENDING"), value: "PENDING" },
+                        ...worklogStatusLegendOrder.map((status) => ({
+                          label: getWorklogStatusLabel(status),
+                          value: status,
+                        })),
                       ]}
                       onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
                     />

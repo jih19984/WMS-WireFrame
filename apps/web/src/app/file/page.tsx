@@ -19,6 +19,7 @@ import { FileList } from "@/app/file/_components/FileList";
 import { fileAiStatusLegendOrder } from "@/app/file/_components/file-ai-badge-config";
 import type { FileFiltersValue, FileItem } from "@/app/file/_types/file.types";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -200,11 +201,9 @@ export default function FilePage() {
           <span className="font-medium">표시 중인 파일</span>
           <span className="text-lg font-semibold text-foreground">{filteredFiles.length}건</span>
           <label className="ml-4 inline-flex items-center gap-2 text-sm text-muted-foreground">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={isAllCurrentPageSelected}
               onChange={(event) => handleToggleSelectAllCurrentPage(event.target.checked)}
-              className="size-4 rounded border border-border"
             />
             <span>현재 페이지 전체 선택</span>
           </label>

@@ -1,4 +1,4 @@
-import { Bell, CheckCheck, ChevronRight, Moon, Plus, Search, Sun } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight, Moon, Plus, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/_common/hooks/useAuth";
@@ -9,6 +9,7 @@ import {
   canManageUsers,
 } from "@/app/_common/service/access-control";
 import { useNotification } from "@/app/notification/_hooks/useNotification";
+import { resolveNotificationDeepLink } from "@/app/notification/_utils/resolveNotificationDeepLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn, formatDateTime } from "@/lib/utils";
@@ -68,7 +69,7 @@ export function GNB() {
           : null;
 
   return (
-    <header className="dark workspace-topbar sticky top-0 z-50 flex w-full items-center gap-4 border-b border-white/10 px-5 py-4 shadow-[0_16px_60px_-32px_rgba(0,0,0,0.55)] lg:px-8">
+    <header className="workspace-topbar sticky top-0 z-50 flex w-full items-center gap-4 border-b border-white/10 px-5 py-4 shadow-[0_16px_60px_-32px_rgba(0,0,0,0.55)] lg:px-8">
       <div className="min-w-0 flex-1">
         <div className="inline-flex items-center rounded border border-white/10 bg-black/10 px-2 py-0.5 text-[8px] font-medium uppercase tracking-[0.13em] text-white/65">
           ibank AX 사업본부
@@ -100,18 +101,6 @@ export function GNB() {
           })}
         </nav>
       </div>
-
-      <button
-        type="button"
-        onClick={() => navigate("/worklog")}
-        className="hidden h-10 min-w-[16rem] items-center gap-3 rounded-lg border border-white/12 bg-black/10 px-4 text-left text-sm text-white/70 shadow-sm transition-all hover:bg-black/18 hover:text-white xl:flex"
-      >
-        <Search className="size-4 shrink-0" />
-        <span className="truncate">업무 검색으로 이동</span>
-        <span className="ml-auto rounded-md border border-white/10 bg-black/18 px-2 py-1 text-[11px] text-white/45">
-          /
-        </span>
-      </button>
 
       <div className="flex items-center gap-2">
         {managementAction ? (
@@ -193,7 +182,7 @@ export function GNB() {
                         onClick={async () => {
                           await markRead(notification.id);
                           setShowNotifications(false);
-                          navigate(notification.deepLink);
+                          navigate(resolveNotificationDeepLink(notification));
                         }}
                       >
                         <div className="min-w-0 flex-1 space-y-2">

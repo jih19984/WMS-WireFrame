@@ -5,6 +5,7 @@ import {
   Files,
   FolderOpen,
   LayoutDashboard,
+  LogOut,
   Tags,
 } from "lucide-react";
 import { Suspense, lazy, useEffect, useState } from "react";
@@ -61,7 +62,7 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
@@ -92,7 +93,7 @@ export function Sidebar() {
   }, [location.pathname]);
 
   return (
-    <aside className="dark workspace-sidebar relative z-20 flex h-full w-[17.5rem] shrink-0 flex-col overflow-hidden border-r border-border/70 text-foreground">
+    <aside className="workspace-sidebar relative z-20 flex h-full w-[17.5rem] shrink-0 flex-col overflow-hidden border-r border-white/10 text-white">
       <div className="flex flex-1 flex-col overflow-y-auto px-3 py-6">
         <div className="flex flex-col gap-2">
           {filteredNavItems.map((item) => (
@@ -120,16 +121,16 @@ export function Sidebar() {
                   cn(
                     "group relative flex items-center gap-3 rounded-xl px-3 py-3 transition-all",
                     isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-white/10 text-white"
+                      : "text-white/68 hover:bg-white/8 hover:text-white"
                   )
                 }
               >
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:text-foreground">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/6 text-white/58 transition-colors group-hover:text-white">
                   <item.icon className="size-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-[14px] font-semibold tracking-[-0.02em]">{item.label}</p>
+                  <p className="truncate text-[15px] font-semibold tracking-[-0.02em]">{item.label}</p>
                 </div>
               </NavLink>
             )
@@ -152,33 +153,49 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="border-t border-border/70 px-4 py-4">
-        <NavLink
-          to="/profile"
-          className={({ isActive }) =>
-            cn(
-              "group flex min-w-0 items-center gap-3 rounded-xl px-3 py-3 transition-all",
-              isActive
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-            )
-          }
-        >
-          <Avatar className="size-11 shrink-0 border-border/70 bg-muted">
-            <AvatarImage src={user?.profileImage} alt={user?.name} />
-            <AvatarFallback className="bg-muted font-bold text-foreground">
-              {user?.name?.slice(0, 1) ?? "U"}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] font-semibold text-foreground">
-              {user?.name ?? "내 계정"}
-            </p>
-            <p className="truncate text-[12px] text-muted-foreground">
-              {user ? getRoleLabel(user.role) : ""}
-            </p>
-          </div>
-        </NavLink>
+      <div className="border-t border-white/10 px-4 py-4">
+        <div className="flex items-center gap-2">
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              cn(
+                "group flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-3 transition-all",
+                isActive
+                  ? "bg-white/10 text-white"
+                  : "text-white/72 hover:bg-white/8 hover:text-white",
+              )
+            }
+          >
+            <Avatar className="size-11 shrink-0 border-white/10 bg-white/8">
+              <AvatarImage src={user?.profileImage} alt={user?.name} />
+              <AvatarFallback className="bg-white/8 font-bold text-white">
+                {user?.name?.slice(0, 1) ?? "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[15px] font-semibold text-white">
+                {user?.name ?? "내 계정"}
+              </p>
+              <p className="truncate text-[13px] text-white/62">
+                {user ? getRoleLabel(user.role) : ""}
+              </p>
+            </div>
+          </NavLink>
+
+          {user ? (
+            <button
+              type="button"
+              aria-label="로그아웃"
+              className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/25 bg-rose-500/12 text-rose-400 transition-all hover:bg-rose-500/20 hover:text-rose-300"
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
+            >
+              <LogOut className="size-4" />
+            </button>
+          ) : null}
+        </div>
       </div>
     </aside>
   );
@@ -211,21 +228,21 @@ function CollapsibleSidebarItem({
         className={cn(
           "group relative flex items-center justify-between gap-3 rounded-xl px-3 py-3 transition-all",
           isActiveGroup
-            ? "bg-accent text-accent-foreground"
+            ? "bg-white/10 text-white"
             : isOpen
-              ? "bg-muted text-foreground"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              ? "bg-white/8 text-white"
+              : "text-white/68 hover:bg-white/8 hover:text-white"
         )}
       >
         <div className="flex items-center gap-3">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:text-foreground">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/6 text-white/58 transition-colors group-hover:text-white">
             <item.icon className="size-4" />
           </div>
-          <p className="truncate text-[14px] font-semibold tracking-[-0.02em]">{item.label}</p>
+          <p className="truncate text-[15px] font-semibold tracking-[-0.02em]">{item.label}</p>
         </div>
         <ChevronDown
           className={cn(
-            "size-4 text-muted-foreground transition-transform duration-300 ease-out",
+            "size-4 text-white/56 transition-transform duration-300 ease-out",
             isOpen && "rotate-180",
           )}
         />
@@ -258,10 +275,10 @@ function CollapsibleSidebarItem({
                     to={sub.href}
                     end={sub.exact}
                     className={cn(
-                      "relative flex items-center rounded-md px-3 py-2 text-[13px] font-medium transition-all before:absolute before:-left-3 before:top-1/2 before:h-1 before:w-1 before:-translate-y-1/2 before:rounded-full",
+                      "relative flex items-center rounded-md px-3 py-2 text-[14px] font-medium transition-all before:absolute before:-left-3 before:top-1/2 before:h-1 before:w-1 before:-translate-y-1/2 before:rounded-full",
                       isSubActive
-                        ? "bg-accent text-accent-foreground before:bg-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground before:bg-transparent",
+                        ? "bg-white/10 text-white before:bg-white"
+                        : "text-white/64 hover:bg-white/8 hover:text-white before:bg-transparent",
                     )}
                   >
                     {sub.label}
@@ -271,10 +288,10 @@ function CollapsibleSidebarItem({
                     <NavLink
                       to={nestedChild.href}
                       className={cn(
-                        "relative ml-4 flex items-center rounded-md px-3 py-2 text-[12px] font-medium transition-all before:absolute before:-left-3 before:top-1/2 before:h-1 before:w-1 before:-translate-y-1/2 before:rounded-full",
+                        "relative ml-4 flex items-center rounded-md px-3 py-2 text-[13px] font-medium transition-all before:absolute before:-left-3 before:top-1/2 before:h-1 before:w-1 before:-translate-y-1/2 before:rounded-full",
                         isNestedChildActive
-                          ? "bg-accent text-accent-foreground before:bg-foreground"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground before:bg-transparent",
+                          ? "bg-white/10 text-white before:bg-white"
+                          : "text-white/64 hover:bg-white/8 hover:text-white before:bg-transparent",
                       )}
                     >
                       {nestedChild.label}

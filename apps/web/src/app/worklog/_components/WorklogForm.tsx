@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { tags, worklogs, teams, users } from "@/app/_common/service/mock-db";
+import { getTagSourceBadgeClass } from "@/app/tag/_utils/tag-badge";
+import { worklogStatusLegendOrder } from "@/app/worklog/_components/worklog-badge-config";
 import type { WorklogFormValues } from "@/app/worklog/_types/worklog.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -361,17 +363,10 @@ export function WorklogForm({
                       className={controlClassName}
                       value={values.status}
                       options={[
-                        { label: getWorklogStatusLabel("PENDING"), value: "PENDING" },
-                        {
-                          label: getWorklogStatusLabel("IN_PROGRESS"),
-                          value: "IN_PROGRESS",
-                        },
-                        { label: getWorklogStatusLabel("DONE"), value: "DONE" },
-                        { label: getWorklogStatusLabel("ON_HOLD"), value: "ON_HOLD" },
-                        {
-                          label: getWorklogStatusLabel("CANCELLED"),
-                          value: "CANCELLED",
-                        },
+                        ...worklogStatusLegendOrder.map((status) => ({
+                          label: getWorklogStatusLabel(status),
+                          value: status,
+                        })),
                       ]}
                       onChange={(event) =>
                         setValues({
@@ -515,30 +510,35 @@ export function WorklogForm({
                 </p>
               ) : (
                 filteredDependencyCandidates.map((dependency) => (
-                  <label
+                  <button
                     key={dependency.id}
+                    type="button"
+                    onClick={() =>
+                      toggleDependency(
+                        dependency.id,
+                        !values.dependencyIds.includes(dependency.id),
+                      )
+                    }
                     className={cn(
-                      "flex items-start gap-3 rounded-2xl border px-3 py-3 text-sm shadow-[0_6px_18px_-14px_rgba(15,23,42,0.18)] transition-colors",
-                      "border-[#cbd7ee] bg-[#edf3ff] text-slate-900",
-                      "dark:border-[#31456d] dark:bg-[#24385f] dark:text-slate-50",
+                      "flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left text-sm shadow-[0_6px_18px_-14px_rgba(15,23,42,0.18)] transition-colors",
+                      "border-border/70 bg-muted/35 text-foreground hover:border-primary/30 hover:bg-primary/6",
                       values.dependencyIds.includes(dependency.id)
-                        ? "ring-1 ring-primary/35"
+                        ? "border-primary/35 bg-primary/8 ring-1 ring-primary/20 dark:bg-primary/12"
                         : "",
                     )}
                   >
                     <Checkbox
                       checked={values.dependencyIds.includes(dependency.id)}
-                      onChange={(event) =>
-                        toggleDependency(dependency.id, event.target.checked)
-                      }
+                      readOnly
+                      className="pointer-events-none"
                     />
                     <span className="space-y-1">
                       <span className="block font-medium">{dependency.title}</span>
-                      <span className="block text-xs text-slate-500 dark:text-slate-300">
+                      <span className="block text-xs text-muted-foreground">
                         현재 상태: {getWorklogStatusLabel(dependency.status)}
                       </span>
                     </span>
-                  </label>
+                  </button>
                 ))
               )}
             </div>
@@ -648,8 +648,11 @@ export function WorklogForm({
                 selectedTags.map((tag) => (
                   <Badge
                     key={tag.id}
-                    variant="secondary"
-                    className="gap-1.5 rounded-full px-3 py-1.5"
+                    variant="outline"
+                    className={cn(
+                      "gap-1.5 rounded-full px-3 py-1.5",
+                      getTagSourceBadgeClass(tag.source),
+                    )}
                   >
                     #{tag.name}
                     <button

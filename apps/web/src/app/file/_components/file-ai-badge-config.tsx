@@ -24,26 +24,30 @@ const fileAiBadgeConfig: Record<AiProcessingStatus, FileAiStatusMeta> = {
     icon: CircleDashed,
     label: getAiStatusLabel("PENDING"),
     variant: "outline",
-    className: "border-[#334155] bg-[#0f172a] text-[#cbd5e1]",
+    className:
+      "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-400/35 dark:bg-slate-300/12 dark:text-slate-100",
   },
   PROCESSING: {
     icon: LoaderCircle,
     label: getAiStatusLabel("PROCESSING"),
     variant: "default",
-    className: "border-[#1d4ed8] bg-[#112f72] text-[#60a5fa]",
+    className:
+      "border-sky-300 bg-sky-100 text-sky-800 dark:border-sky-400/45 dark:bg-sky-400/16 dark:text-sky-100",
     iconClassName: "animate-spin",
   },
   DONE: {
     icon: CheckCheck,
     label: getAiStatusLabel("DONE"),
     variant: "success",
-    className: "border-[#065f46] bg-[#063a32] text-[#5eead4]",
+    className:
+      "border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-400/45 dark:bg-emerald-400/16 dark:text-emerald-100",
   },
   FAILED: {
     icon: OctagonAlert,
     label: getAiStatusLabel("FAILED"),
     variant: "destructive",
-    className: "border-[#9f1239] bg-[#4a142b] text-[#fda4af]",
+    className:
+      "border-red-300 bg-red-100 text-red-800 dark:border-red-400/45 dark:bg-red-400/16 dark:text-red-100",
   },
 };
 

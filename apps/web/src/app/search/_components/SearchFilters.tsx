@@ -8,6 +8,7 @@ import {
 } from "@/app/_common/service/access-control";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { departments, tags, teams, users } from "@/app/_common/service/mock-db";
+import { worklogStatusLegendOrder } from "@/app/worklog/_components/worklog-badge-config";
 import { Select } from "@/components/ui/select";
 import type { SearchFiltersValue } from "@/app/search/_types/search.types";
 import { cn, getRoleLabel, getImportanceLabel, getWorklogStatusLabel } from "@/lib/utils";
@@ -91,9 +92,10 @@ export function SearchFilters({
           value={value.status}
           options={[
             { label: "전체 상태", value: "all" },
-            { label: getWorklogStatusLabel("IN_PROGRESS"), value: "IN_PROGRESS" },
-            { label: getWorklogStatusLabel("DONE"), value: "DONE" },
-            { label: getWorklogStatusLabel("ON_HOLD"), value: "ON_HOLD" },
+            ...worklogStatusLegendOrder.map((status) => ({
+              label: getWorklogStatusLabel(status),
+              value: status,
+            })),
           ]}
           onChange={(event) => onChange({ ...value, status: event.target.value })}
         />

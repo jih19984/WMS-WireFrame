@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { users, worklogs } from "@/app/_common/service/mock-db";
 import type { Team } from "@/app/team/_types/team.types";
+import { StatusBadge } from "@/app/worklog/_components/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -76,7 +77,7 @@ export function TeamDetail({ team }: { team: Team }) {
                     <p className="font-medium">{worklog.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{worklog.aiSummary}</p>
                   </div>
-                  <Badge>{getWorklogStatusLabel(worklog.status)}</Badge>
+                  <StatusBadge status={worklog.status} />
                 </div>
               </div>
             ))}

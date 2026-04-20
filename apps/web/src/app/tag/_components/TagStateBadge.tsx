@@ -6,19 +6,19 @@ const tagStateMeta = {
     label: "운영중",
     icon: CheckCheck,
     className:
-      "border-emerald-400 bg-emerald-50 text-emerald-600 dark:border-emerald-500 dark:bg-emerald-950 dark:text-emerald-300",
+      "border-emerald-300 bg-emerald-100 text-emerald-800 shadow-sm dark:border-emerald-400/55 dark:bg-emerald-400/16 dark:text-emerald-100",
   },
   REVIEW: {
     label: "검토 필요",
     icon: CircleAlert,
     className:
-      "border-amber-400 bg-amber-50 text-amber-600 dark:border-amber-500 dark:bg-amber-950 dark:text-amber-300",
+      "border-orange-300 bg-orange-100 text-orange-800 shadow-sm dark:border-orange-400/55 dark:bg-orange-400/16 dark:text-orange-100",
   },
   MERGE_CANDIDATE: {
     label: "병합 후보",
     icon: ArrowLeftRight,
     className:
-      "border-slate-400 bg-slate-100 text-slate-700 dark:border-slate-500 dark:bg-slate-900 dark:text-slate-200",
+      "border-violet-300 bg-violet-100 text-violet-800 shadow-sm dark:border-violet-400/55 dark:bg-violet-400/16 dark:text-violet-100",
   },
 };
 

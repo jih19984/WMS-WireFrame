@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { NotificationItem } from "@/app/notification/_types/notification.types";
+import { resolveNotificationDeepLink } from "@/app/notification/_utils/resolveNotificationDeepLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
@@ -62,7 +63,7 @@ export function NotificationList({
             </div>
             <div className="flex justify-end">
               <Link
-                to={notification.deepLink}
+                to={resolveNotificationDeepLink(notification)}
                 className="inline-flex h-10 items-center rounded-2xl border border-border/70 px-4 text-sm font-medium text-primary transition-colors hover:bg-muted/40"
               >
                 관련 화면 이동

@@ -331,6 +331,32 @@ pre {
   color: var(--muted-foreground);
 }
 
+.dashboard-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--primary) 42%, var(--muted-foreground)) transparent;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 42%, var(--muted-foreground));
+  background-clip: padding-box;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 64%, var(--foreground));
+  background-clip: padding-box;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 55%, transparent);
+}
+
 .route-content-enter {
   animation: route-content-enter 240ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;

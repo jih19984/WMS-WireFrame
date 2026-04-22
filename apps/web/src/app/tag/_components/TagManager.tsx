@@ -227,9 +227,8 @@ export function TagManager({ canManage }: { canManage: boolean }) {
             <CardSpotlight
               key={tag.id}
               className={cn(
-                "rounded-[24px] border-border/75 transition-transform duration-300 hover:-translate-y-1",
-                checked &&
-                  "border-blue-300 bg-blue-50/90 ring-2 ring-blue-400/55 ring-offset-2 ring-offset-background shadow-[0_18px_40px_-22px_rgba(37,99,235,0.45)] dark:border-sky-300/45 dark:bg-sky-300/10 dark:ring-sky-300/45 dark:shadow-[0_18px_40px_-22px_rgba(56,189,248,0.4)]"
+                "rounded-[24px] border-border/75 transition-all duration-300 hover:-translate-y-1",
+                checked && "ring-2 ring-primary/60 ring-offset-2 ring-offset-background",
               )}
             >
               <button
@@ -276,9 +275,7 @@ export function TagManager({ canManage }: { canManage: boolean }) {
                   <div
                     className={cn(
                       "rounded-2xl border border-dashed p-3 text-sm",
-                      checked
-                        ? "border-blue-200 bg-blue-50/75 text-slate-700 dark:border-sky-300/30 dark:bg-sky-300/10 dark:text-slate-200"
-                        : "border-border/60 bg-muted/25 text-muted-foreground",
+                      "border-border/60 bg-muted/25 text-muted-foreground",
                     )}
                   >
                     {tag.reuseHint}

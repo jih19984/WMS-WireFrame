@@ -61,7 +61,6 @@ type DashboardGroup = {
   overdue: number;
   hours: number;
   memberCount: number;
-  overloadCount: number;
   leaderName?: string;
 };
 
@@ -83,6 +82,11 @@ function isWithinLastSevenDays(date?: string) {
 function getCompletionRate(group: DashboardGroup) {
   if (group.total === 0) return 0;
   return Math.round((group.done / group.total) * 100);
+}
+
+function getWorkloadPerMember(group: DashboardGroup) {
+  if (group.memberCount === 0) return 0;
+  return group.hours / group.memberCount;
 }
 
 function getLoadBalanceIndex(groups: DashboardGroup[]) {
@@ -488,12 +492,6 @@ function createDashboardGroup(
   leaderName?: string,
 ): DashboardGroup {
   const groupWorklogs = allWorklogs.filter((worklog) => teamIds.includes(worklog.teamId));
-  const groupUserIds = groupUsers.map((member) => member.id);
-  const overloadCount = groupUserIds.filter((userId) => {
-    const memberWorklogs = groupWorklogs.filter((worklog) => worklog.authorId === userId);
-    const memberHours = memberWorklogs.reduce((sum, worklog) => sum + worklog.actualHours, 0);
-    return memberWorklogs.length >= 10 || memberHours >= 50;
-  }).length;
 
   return {
     id,
@@ -506,7 +504,6 @@ function createDashboardGroup(
     ).length,
     hours: groupWorklogs.reduce((sum, worklog) => sum + worklog.actualHours, 0),
     memberCount: groupUsers.length,
-    overloadCount,
     leaderName,
   };
 }
@@ -614,29 +611,32 @@ function WorkloadPanel({
         <CardTitle>{mode === "DIRECTOR" ? "부서별 업무 부하" : "팀별 업무 부하"}</CardTitle>
       </CardHeader>
       <CardContent className="dashboard-scrollbar max-h-[276px] space-y-3 overflow-y-auto [scrollbar-gutter:stable]">
-        {groups.map((group) => (
-          <div key={group.id} className="rounded-2xl border border-border/60 bg-muted/25 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-medium text-foreground">{group.name}</p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  구성원 {group.memberCount}명 / 진행중 {group.inProgress}건 / 지연 {group.overdue}건
-                </p>
-                {group.leaderName ? (
-                  <p className="mt-1 text-xs text-muted-foreground">팀리더 {group.leaderName}</p>
-                ) : null}
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className="text-sm font-semibold text-foreground">{formatHours(group.hours)}</span>
-                {group.overloadCount > 0 ? (
-                  <Badge variant="warning">기준치 초과 {group.overloadCount}명</Badge>
-                ) : (
-                  <Badge variant="outline">안정</Badge>
-                )}
+        {groups.map((group) => {
+          const workloadPerMember = getWorkloadPerMember(group);
+
+          return (
+            <div key={group.id} className="rounded-2xl border border-border/60 bg-muted/25 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-medium text-foreground">{group.name}</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    총 {formatHours(group.hours)} / 구성원 {group.memberCount}명 / 진행중{" "}
+                    {group.inProgress}건 / 지연 {group.overdue}건
+                  </p>
+                  {group.leaderName ? (
+                    <p className="mt-1 text-xs text-muted-foreground">팀리더 {group.leaderName}</p>
+                  ) : null}
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="text-sm font-semibold text-foreground">
+                    {formatHours(workloadPerMember)}/명
+                  </span>
+                  <Badge variant="outline">1인당 업무 부하</Badge>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </CardSpotlight>
   );

@@ -36,7 +36,7 @@ export function DepartmentForm({
 
   return (
     <form
-      className="registration-surface w-full max-w-[1120px] pb-10"
+      className="registration-surface w-full max-w-[1480px] pb-10"
       onSubmit={async (event) => {
         event.preventDefault();
         await onSubmit(values);
@@ -46,7 +46,7 @@ export function DepartmentForm({
         eyebrow="DEPARTMENT PROFILE"
         title="부서 정보"
         icon={<Building2 className="size-4" />}
-        className="min-h-[520px]"
+        className="min-h-[720px]"
       >
         <div className="grid gap-5">
           <RegistrationField label="부서명">

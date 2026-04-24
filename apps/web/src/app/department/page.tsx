@@ -6,11 +6,14 @@ import { usePagination } from "@/app/_common/hooks/usePagination";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { canManageDepartments } from "@/app/_common/service/access-control";
 import { useDepartment } from "@/app/department/_hooks/useDepartment";
+import { DepartmentList } from "@/app/department/_components/DepartmentList";
 import { useTeam } from "@/app/team/_hooks/useTeam";
 import { useUser } from "@/app/user/_hooks/useUser";
-import { DepartmentList } from "@/app/department/_components/DepartmentList";
 import { Button } from "@/components/ui/button";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
+
+const registrationButtonClassName =
+  "h-10 min-w-32 px-6 text-sm font-semibold";
 
 export default function DepartmentPage() {
   const { user } = useAuth();
@@ -36,7 +39,7 @@ export default function DepartmentPage() {
       <div className="flex flex-col gap-5">
         <PageHeader
           title="부서 관리"
-          description="가시 범위 안의 부서 목록과 현재 부서 운영 규모를 한 화면에서 확인합니다."
+          description="권한 범위 안의 부서 목록과 현재 부서 운영 규모를 한 화면에서 확인합니다."
         />
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -60,7 +63,7 @@ export default function DepartmentPage() {
               부서 목록
             </h2>
             {canManageDepartment ? (
-              <Button asChild variant="outline" className="h-9">
+              <Button asChild variant="default" className={registrationButtonClassName}>
                 <Link to="/department/create">부서 등록</Link>
               </Button>
             ) : null}

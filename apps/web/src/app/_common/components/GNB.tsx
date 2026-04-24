@@ -1,13 +1,8 @@
-import { Bell, CheckCheck, ChevronRight, Moon, Plus, Sun } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight, Moon, Sun } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { resolveBreadcrumbs } from "@/app/_common/service/breadcrumbs";
-import {
-  canManageDepartments,
-  canManageTeams,
-  canManageUsers,
-} from "@/app/_common/service/access-control";
 import {
   allTeamsScopeValue,
   readStoredTeamScope,
@@ -99,15 +94,6 @@ export function GNB() {
             ? "리드 팀 전체"
             : "내 소속 팀 전체";
 
-  const managementAction =
-    location.pathname === "/department" && canManageDepartments(user)
-      ? { label: "부서 등록", href: "/department/create" }
-      : location.pathname === "/team" && canManageTeams(user)
-        ? { label: "팀 등록", href: "/team/create" }
-        : location.pathname === "/user" && canManageUsers(user)
-          ? { label: "사용자 등록", href: "/user/create" }
-          : null;
-
   return (
     <header className="workspace-topbar sticky top-0 z-50 flex w-full items-center gap-4 border-b border-white/10 px-5 py-4 shadow-[0_16px_60px_-32px_rgba(0,0,0,0.55)] lg:px-8">
       <div className="min-w-0 flex-1">
@@ -143,17 +129,6 @@ export function GNB() {
       </div>
 
       <div className="flex items-center gap-2">
-        {managementAction ? (
-          <Button
-            variant="outline"
-            className="hidden h-10 border-white/12 bg-black/10 text-white hover:bg-black/18 lg:inline-flex"
-            onClick={() => navigate(managementAction.href)}
-          >
-            <Plus className="size-4" />
-            {managementAction.label}
-          </Button>
-        ) : null}
-
         <Button
           type="button"
           variant="outline"

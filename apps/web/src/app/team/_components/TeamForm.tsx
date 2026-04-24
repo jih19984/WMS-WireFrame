@@ -48,7 +48,7 @@ export function TeamForm({
 
   return (
     <form
-      className="registration-surface w-full max-w-[1320px] pb-10"
+      className="registration-surface w-full max-w-[1480px] pb-10"
       onSubmit={async (event) => {
         event.preventDefault();
         await onSubmit(values);
@@ -58,9 +58,9 @@ export function TeamForm({
         eyebrow="TEAM WORKFLOW"
         title="팀 정보 및 운영 설정"
         icon={<Network className="size-4" />}
-        className="min-h-[620px]"
+        className="min-h-[720px]"
       >
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.85fr)]">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.9fr)]">
           <div className="space-y-5">
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
               기본 정보

@@ -6,7 +6,7 @@ import {
   ShieldAlert,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -22,6 +22,12 @@ import { PageHeader } from "@/app/_common/components/PageHeader";
 import { StatCard } from "@/app/_common/components/StatCard";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import type { FileRecord, TagRecord, WorklogRecord } from "@/app/_common/service/mock-db";
+import {
+  allTeamsScopeValue,
+  readStoredTeamScope,
+  teamScopeChangedEvent,
+  type TeamScopeValue,
+} from "@/app/_common/service/team-scope-preference";
 import { useDepartment } from "@/app/department/_hooks/useDepartment";
 import { useFile } from "@/app/file/_hooks/useFile";
 import { useNotification } from "@/app/notification/_hooks/useNotification";
@@ -35,7 +41,6 @@ import { useWorklog } from "@/app/worklog/_hooks/useWorklog";
 import { Badge } from "@/components/ui/badge";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
-import { Select } from "@/components/ui/select";
 import {
   cn,
   formatDate,
@@ -129,13 +134,29 @@ export default function DashboardPage() {
   const { departments } = useDepartment();
   const { tags } = useTag();
   const [previewWorklogId, setPreviewWorklogId] = useState<number | null>(null);
-  const [selectedTeamId, setSelectedTeamId] = useState<"ALL" | number>("ALL");
+  const [selectedTeamScope, setSelectedTeamScope] = useState<TeamScopeValue>(
+    () => readStoredTeamScope(),
+  );
+
+  useEffect(() => {
+    const handleTeamScopeChange = (event: Event) => {
+      setSelectedTeamScope((event as CustomEvent<TeamScopeValue>).detail);
+    };
+
+    window.addEventListener(teamScopeChangedEvent, handleTeamScopeChange);
+    return () => window.removeEventListener(teamScopeChangedEvent, handleTeamScopeChange);
+  }, []);
 
   if (!user) return null;
 
   const mode: DashboardMode = user.role;
   const ledTeamIds = teams.filter((team) => team.leaderId === user.id).map((team) => team.id);
   const teamLeadScopeIds = ledTeamIds.length > 0 ? ledTeamIds : user.teamIds;
+
+  const requestedTeamId =
+    selectedTeamScope !== allTeamsScopeValue && Number.isFinite(Number(selectedTeamScope))
+      ? Number(selectedTeamScope)
+      : allTeamsScopeValue;
 
   const availableTeams =
     mode === "DIRECTOR"
@@ -147,14 +168,15 @@ export default function DashboardPage() {
           : teams.filter((team) => user.teamIds.includes(team.id));
 
   const effectiveSelectedTeamId =
-    selectedTeamId !== "ALL" && availableTeams.some((team) => team.id === selectedTeamId)
-      ? selectedTeamId
-      : "ALL";
+    requestedTeamId !== allTeamsScopeValue &&
+    availableTeams.some((team) => team.id === requestedTeamId)
+      ? requestedTeamId
+      : allTeamsScopeValue;
   const activeTeamIds =
-    effectiveSelectedTeamId === "ALL"
+    effectiveSelectedTeamId === allTeamsScopeValue
       ? availableTeams.map((team) => team.id)
       : [effectiveSelectedTeamId];
-  const isTeamFilterActive = effectiveSelectedTeamId !== "ALL";
+  const isTeamFilterActive = effectiveSelectedTeamId !== allTeamsScopeValue;
   const scopedTeams = availableTeams.filter((team) => activeTeamIds.includes(team.id));
   const scopedTeamIds = scopedTeams.map((team) => team.id);
 
@@ -280,40 +302,12 @@ export default function DashboardPage() {
       ? "전사"
       : "내 부서";
   const adminGroupUnitLabel = comparisonMode === "DIRECTOR" ? "부서" : "팀";
-  const teamFilterLabel =
-    mode === "DIRECTOR"
-      ? "전사 팀 범위"
-      : mode === "DEPT_HEAD"
-        ? "내 부서 팀 범위"
-        : mode === "TEAM_LEAD"
-          ? "리드 팀 범위"
-          : "내 업무 팀 범위";
-  const allTeamLabel =
-    mode === "DIRECTOR"
-      ? "전체 팀 통합"
-      : mode === "DEPT_HEAD"
-        ? "부서 전체 팀"
-        : mode === "TEAM_LEAD"
-          ? "리드 팀 전체"
-          : "내 소속 팀 전체";
-
   return (
     <div className="flex flex-col gap-6 pb-12">
       <PageHeader
         title="대시보드"
         description={roleCopy.description}
       />
-
-      {availableTeams.length > 0 ? (
-        <TeamScopeSelect
-          label={teamFilterLabel}
-          allLabel={allTeamLabel}
-          teams={availableTeams}
-          value={effectiveSelectedTeamId}
-          onChange={setSelectedTeamId}
-          summary={`${scopedTeams.length}개 팀 · ${scopedUsers.length}명 · ${scopedWorklogs.length}건 표시 중`}
-        />
-      ) : null}
 
       {mode === "DIRECTOR" || mode === "DEPT_HEAD" ? (
         <>
@@ -361,7 +355,11 @@ export default function DashboardPage() {
             <StatCard
               label="진행 중인 업무 수"
               value={getProgressRatioValue(inProgressWorklogs.length, scopedWorklogs.length)}
-              hint={effectiveSelectedTeamId === "ALL" ? "내 모든 리드 팀 통합" : "선택 팀 진행률"}
+              hint={
+                effectiveSelectedTeamId === allTeamsScopeValue
+                  ? "내 모든 리드 팀 통합"
+                  : "선택 팀 진행률"
+              }
               icon={BarChart3}
               tone="default"
             />
@@ -550,60 +548,6 @@ function ScopeMetric({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-1 text-[15px] font-semibold text-foreground">{value}</p>
     </div>
-  );
-}
-
-function TeamScopeSelect({
-  label,
-  allLabel,
-  summary,
-  teams,
-  value,
-  onChange,
-}: {
-  label: string;
-  allLabel: string;
-  summary: string;
-  teams: { id: number; name: string }[];
-  value: "ALL" | number;
-  onChange: (value: "ALL" | number) => void;
-}) {
-  const selectedTeam = value === "ALL" ? null : teams.find((team) => team.id === value);
-
-  return (
-    <section className="rounded-[26px] border border-border/70 bg-muted/20 p-4 shadow-[0_18px_52px_-36px_rgba(15,23,42,0.42)]">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-            {label}
-          </p>
-          <h2 className="mt-2 truncate text-[22px] font-semibold tracking-[-0.04em] text-foreground">
-            {selectedTeam?.name ?? allLabel}
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            선택한 팀 기준으로 KPI, 차트, 업무 리스트를 즉시 재계산합니다.
-          </p>
-        </div>
-
-        <div className="grid w-full gap-2 sm:max-w-[340px]">
-          <Select
-            className="h-12 rounded-2xl border-border/70 bg-background/80 px-4 text-base font-semibold shadow-[0_10px_30px_-24px_rgba(15,23,42,0.55)]"
-            value={String(value)}
-            options={[
-              { label: allLabel, value: "ALL" },
-              ...teams.map((team) => ({ label: team.name, value: String(team.id) })),
-            ]}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              onChange(nextValue === "ALL" ? "ALL" : Number(nextValue));
-            }}
-          />
-          <p className="text-xs text-muted-foreground">
-            {summary}
-          </p>
-        </div>
-      </div>
-    </section>
   );
 }
 

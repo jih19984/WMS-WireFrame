@@ -8,10 +8,18 @@ import {
   canManageTeams,
   canManageUsers,
 } from "@/app/_common/service/access-control";
+import {
+  allTeamsScopeValue,
+  readStoredTeamScope,
+  type TeamScopeValue,
+  writeStoredTeamScope,
+} from "@/app/_common/service/team-scope-preference";
 import { useNotification } from "@/app/notification/_hooks/useNotification";
+import { useTeam } from "@/app/team/_hooks/useTeam";
 import { resolveNotificationDeepLink } from "@/app/notification/_utils/resolveNotificationDeepLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { cn, formatDateTime } from "@/lib/utils";
 
 const notificationTypeLabelMap = {
@@ -26,9 +34,13 @@ export function GNB() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { teams } = useTeam();
   const { recentNotifications, unreadCount, markAllRead, markRead } = useNotification();
   const [showNotifications, setShowNotifications] = useState(false);
   const [isDark, setIsDark] = useState(true);
+  const [selectedTeamScope, setSelectedTeamScope] = useState<TeamScopeValue>(
+    () => readStoredTeamScope(),
+  );
   const notificationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,6 +70,34 @@ export function GNB() {
   };
 
   const breadcrumbs = resolveBreadcrumbs(location.pathname);
+  const shouldShowTeamSelect = !!user;
+  const availableDashboardTeams =
+    !user
+      ? []
+      : user.role === "DIRECTOR"
+        ? teams
+        : user.role === "DEPT_HEAD"
+          ? teams.filter((team) => team.departmentId === user.departmentId)
+          : user.role === "TEAM_LEAD"
+            ? teams.filter(
+                (team) => team.leaderId === user.id || user.teamIds.includes(team.id),
+              )
+            : teams.filter((team) => user.teamIds.includes(team.id));
+  const effectiveSelectedTeamScope =
+    selectedTeamScope !== allTeamsScopeValue &&
+    availableDashboardTeams.some((team) => String(team.id) === selectedTeamScope)
+      ? selectedTeamScope
+      : allTeamsScopeValue;
+  const dashboardAllTeamLabel =
+    !user
+      ? "전체 팀"
+      : user.role === "DIRECTOR"
+        ? "전체 팀 통합"
+        : user.role === "DEPT_HEAD"
+          ? "부서 전체 팀"
+          : user.role === "TEAM_LEAD"
+            ? "리드 팀 전체"
+            : "내 소속 팀 전체";
 
   const managementAction =
     location.pathname === "/department" && canManageDepartments(user)
@@ -124,6 +164,28 @@ export function GNB() {
         >
           {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </Button>
+
+        {shouldShowTeamSelect && availableDashboardTeams.length > 0 ? (
+          <div className="hidden lg:block lg:w-[240px]">
+            <Select
+              className="h-10 rounded-xl border-white/12 bg-black/10 px-3 text-sm font-medium text-white/85 shadow-none transition-colors hover:bg-black/18 focus-visible:border-white/18 focus-visible:ring-white/15"
+              value={effectiveSelectedTeamScope}
+              options={[
+                { label: dashboardAllTeamLabel, value: allTeamsScopeValue },
+                ...availableDashboardTeams.map((team) => ({
+                  label: team.name,
+                  value: String(team.id),
+                })),
+              ]}
+              onChange={(event) => {
+                const nextValue = event.target.value as TeamScopeValue;
+                setSelectedTeamScope(nextValue);
+                writeStoredTeamScope(nextValue);
+              }}
+              aria-label="팀 선택"
+            />
+          </div>
+        ) : null}
 
         {user ? (
           <div className="relative" ref={notificationRef}>

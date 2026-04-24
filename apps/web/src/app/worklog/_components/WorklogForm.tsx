@@ -22,18 +22,6 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn, getImportanceLabel, getWorklogStatusLabel } from "@/lib/utils";
 
-function normalizeDuration(actualHours: number) {
-  const totalMinutes = Math.max(0, Math.round(actualHours * 60));
-  const snappedMinutes = Math.round(totalMinutes / 5) * 5;
-  const nextHour = Math.floor(snappedMinutes / 60);
-  const nextMinute = snappedMinutes % 60;
-
-  return {
-    hour: Math.min(nextHour, 24),
-    minute: nextMinute,
-  };
-}
-
 function hasCircularDependency(
   worklogId: number,
   dependencyIds: number[],
@@ -62,6 +50,18 @@ function hasCircularDependency(
   };
 
   return dfs(worklogId);
+}
+
+function getActualHoursError(input: string) {
+  const normalizedInput = input.trim();
+  if (!normalizedInput) return "업무 시간을 입력해주세요.";
+
+  const nextHours = Number(normalizedInput);
+  if (!Number.isFinite(nextHours) || nextHours < 0) {
+    return "업무 시간은 0 이상의 숫자로 입력해주세요.";
+  }
+
+  return "";
 }
 
 export function WorklogForm({
@@ -99,6 +99,10 @@ export function WorklogForm({
     },
   );
   const [submitError, setSubmitError] = useState("");
+  const [actualHoursInput, setActualHoursInput] = useState(() =>
+    String(initialValues?.actualHours ?? 1),
+  );
+  const [actualHoursTouched, setActualHoursTouched] = useState(false);
   const [dependencyKeywordInput, setDependencyKeywordInput] = useState("");
   const [dependencySearchOpen, setDependencySearchOpen] = useState(false);
   const [tagKeywordInput, setTagKeywordInput] = useState("");
@@ -116,22 +120,7 @@ export function WorklogForm({
       })),
     [],
   );
-  const hourOptions = useMemo(
-    () =>
-      Array.from({ length: 25 }, (_, hour) => ({
-        label: `${hour}시간`,
-        value: String(hour),
-      })),
-    [],
-  );
-  const minuteOptions = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, index) => index * 5).map((minute) => ({
-        label: `${minute}분`,
-        value: String(minute),
-      })),
-    [],
-  );
+  const actualHoursError = getActualHoursError(actualHoursInput);
   const dependencyCandidates = useMemo(
     () =>
       worklogs.filter(
@@ -221,17 +210,6 @@ export function WorklogForm({
     }));
   };
 
-  const { hour: normalizedHour, minute: normalizedMinute } = normalizeDuration(
-    values.actualHours,
-  );
-
-  const updateActualHours = (nextHour: number, nextMinute: number) => {
-    setValues({
-      ...values,
-      actualHours: nextHour + nextMinute / 60,
-    });
-  };
-
   const addAttachmentNames = (names: string[]) => {
     setValues((previous) => ({
       ...previous,
@@ -270,6 +248,12 @@ export function WorklogForm({
       onSubmit={async (event) => {
         event.preventDefault();
 
+        setActualHoursTouched(true);
+        if (actualHoursError) {
+          setSubmitError(actualHoursError);
+          return;
+        }
+
         if (circularDependencyDetected) {
           setSubmitError(
             "순환 의존성이 감지되었습니다. 현재 업무를 다시 참조하는 연결을 해제해주세요.",
@@ -278,7 +262,10 @@ export function WorklogForm({
         }
 
         setSubmitError("");
-        await onSubmit(values);
+        await onSubmit({
+          ...values,
+          actualHours: Number(actualHoursInput.trim()),
+        });
       }}
     >
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(440px,0.9fr)]">
@@ -433,6 +420,16 @@ export function WorklogForm({
                   )}
                 </div>
               </section>
+            </div>
+
+            <div className="flex justify-end border-t border-border/70 pt-6">
+              <Button
+                type="submit"
+                size="lg"
+                className="h-12 min-w-[180px] rounded-2xl px-7 font-semibold shadow-[0_14px_40px_-20px_rgba(59,130,246,0.8)]"
+              >
+                {submitLabel}
+              </Button>
             </div>
           </div>
         </FormPanel>
@@ -603,23 +600,47 @@ export function WorklogForm({
               </Field>
 
               <Field label="시간">
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-                  <Select
-                    className={controlClassName}
-                    value={String(normalizedHour)}
-                    options={hourOptions}
-                    onChange={(event) =>
-                      updateActualHours(Number(event.target.value), normalizedMinute)
-                    }
+                <div className="space-y-2">
+                  <Input
+                    className={cn(
+                      controlClassName,
+                      actualHoursTouched && actualHoursError
+                        ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                        : "",
+                    )}
+                    type="number"
+                    min={0}
+                    step="any"
+                    inputMode="decimal"
+                    value={actualHoursInput}
+                    onBlur={() => setActualHoursTouched(true)}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      const nextError = getActualHoursError(nextValue);
+
+                      setActualHoursInput(nextValue);
+                      if (!nextError) {
+                        setValues((previous) => ({
+                          ...previous,
+                          actualHours: Number(nextValue.trim()),
+                        }));
+                      }
+                    }}
+                    placeholder="예: 1.5"
+                    aria-invalid={actualHoursTouched && actualHoursError ? true : undefined}
                   />
-                  <Select
-                    className={controlClassName}
-                    value={String(normalizedMinute)}
-                    options={minuteOptions}
-                    onChange={(event) =>
-                      updateActualHours(normalizedHour, Number(event.target.value))
-                    }
-                  />
+                  <p
+                    className={cn(
+                      "text-xs leading-5",
+                      actualHoursTouched && actualHoursError
+                        ? "text-destructive"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {actualHoursTouched && actualHoursError
+                      ? actualHoursError
+                      : "소수 입력이 가능합니다. 예: 1.5 = 1시간 30분"}
+                  </p>
                 </div>
               </Field>
 
@@ -647,13 +668,6 @@ export function WorklogForm({
                 </div>
               </Field>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="h-12 w-full rounded-2xl px-7 font-semibold shadow-[0_14px_40px_-20px_rgba(59,130,246,0.8)]"
-              >
-                {submitLabel}
-              </Button>
             </div>
           </FormPanel>
 

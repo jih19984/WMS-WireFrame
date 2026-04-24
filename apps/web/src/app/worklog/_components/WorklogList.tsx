@@ -1,7 +1,5 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { canEditWorklog } from "@/app/_common/service/access-control";
-import { useAuth } from "@/app/_common/hooks/useAuth";
 import { teams, users } from "@/app/_common/service/mock-db";
 import type { Worklog } from "@/app/worklog/_types/worklog.types";
 import { ImportanceBadge } from "@/app/worklog/_components/ImportanceBadge";
@@ -14,7 +12,6 @@ import { CardSpotlight } from "@/components/ui/card-spotlight";
 import { getAiStatusLabel } from "@/lib/utils";
 
 export function WorklogList({ worklogs }: { worklogs: Worklog[] }) {
-  const { user } = useAuth();
   const [previewWorklogId, setPreviewWorklogId] = useState<number | null>(null);
 
   return (
@@ -43,7 +40,7 @@ export function WorklogList({ worklogs }: { worklogs: Worklog[] }) {
                 }}
                 className="group cursor-pointer rounded-[24px] transition-all duration-300 hover:-translate-y-1"
               >
-                <CardContent className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">
+                <CardContent className="flex flex-col gap-5 p-5 lg:flex-row lg:items-stretch lg:justify-between">
                   <div className="min-w-0 flex-1 space-y-4">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
@@ -90,43 +87,37 @@ export function WorklogList({ worklogs }: { worklogs: Worklog[] }) {
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 flex-col items-start gap-4 text-sm lg:items-end">
-                    <div className="text-left lg:text-right">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                        마감일
-                      </p>
-                      <p className="mt-1 font-semibold text-foreground">
-                        {worklog.dueDate}
-                      </p>
+                  <div className="flex shrink-0 flex-col items-start justify-between gap-4 text-sm lg:w-[250px] lg:border-l lg:border-border/70 lg:pl-5">
+                    <div className="grid w-full grid-cols-2 gap-5 text-left lg:text-right">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          시작일
+                        </p>
+                        <p className="mt-1 font-semibold text-foreground">
+                          {worklog.instructionDate}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          마감일
+                        </p>
+                        <p className="mt-1 font-semibold text-foreground">
+                          {worklog.dueDate}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Button
-                        variant="secondary"
-                        className="h-11 min-w-28 px-5 text-sm font-semibold"
-                        asChild
+                    <Button
+                      variant="secondary"
+                      className="h-11 w-full text-sm font-semibold lg:mt-auto"
+                      asChild
+                    >
+                      <Link
+                        to={`/worklog/detail/${worklog.id}`}
+                        onClick={(event) => event.stopPropagation()}
                       >
-                        <Link
-                          to={`/worklog/detail/${worklog.id}`}
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          상세
-                        </Link>
-                      </Button>
-                      {canEditWorklog(user, worklog) ? (
-                        <Button
-                          variant="default"
-                          className="h-11 min-w-28 px-5 text-sm font-semibold"
-                          asChild
-                        >
-                          <Link
-                            to={`/worklog/edit/${worklog.id}`}
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            수정
-                          </Link>
-                        </Button>
-                      ) : null}
-                    </div>
+                        상세
+                      </Link>
+                    </Button>
                   </div>
                 </CardContent>
               </CardSpotlight>

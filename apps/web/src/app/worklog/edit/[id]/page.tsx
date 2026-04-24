@@ -46,6 +46,7 @@ export default function WorklogEditPage() {
           aiSummary: worklog.aiSummary,
           aiSummaryEdited: worklog.aiSummaryEdited,
           aiRegenerateRequested: false,
+          statusChangeReason: "",
         }}
         currentWorklogId={worklog.id}
         submitLabel="수정 저장"

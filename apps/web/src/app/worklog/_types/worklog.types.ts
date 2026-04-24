@@ -19,4 +19,5 @@ export interface WorklogFormValues {
   aiSummary?: string;
   aiSummaryEdited?: boolean;
   aiRegenerateRequested?: boolean;
+  statusChangeReason?: string;
 }

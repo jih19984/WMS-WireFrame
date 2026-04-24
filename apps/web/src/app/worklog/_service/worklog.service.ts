@@ -231,6 +231,7 @@ export const worklogService = {
       aiSummary: _aiSummary,
       aiSummaryEdited: _aiSummaryEdited,
       aiRegenerateRequested: _aiRegenerateRequested,
+      statusChangeReason: _statusChangeReason,
       ...worklogValues
     } = values;
     const today = new Date().toISOString().slice(0, 10);
@@ -272,6 +273,7 @@ export const worklogService = {
       aiSummary,
       aiSummaryEdited,
       aiRegenerateRequested,
+      statusChangeReason,
       ...worklogValues
     } = values;
 
@@ -333,7 +335,7 @@ export const worklogService = {
         previousStatus,
         newStatus: values.status,
         changedBy: values.authorId,
-        reason: "수정 화면에서 상태가 변경되었습니다.",
+        reason: statusChangeReason?.trim() || "수정 화면에서 상태가 변경되었습니다.",
         changedAt: new Date().toISOString(),
       });
       addDependencyNotifications(target);

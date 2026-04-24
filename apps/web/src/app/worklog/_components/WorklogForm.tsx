@@ -96,6 +96,7 @@ export function WorklogForm({
       dependencyIds: [],
       attachmentNames: [],
       tagIds: [],
+      statusChangeReason: "",
     },
   );
   const [submitError, setSubmitError] = useState("");
@@ -107,6 +108,15 @@ export function WorklogForm({
   const [dependencySearchOpen, setDependencySearchOpen] = useState(false);
   const [tagKeywordInput, setTagKeywordInput] = useState("");
   const [tagSearchOpen, setTagSearchOpen] = useState(false);
+  const createStatusOptions: WorklogFormValues["status"][] = [
+    "PENDING",
+    "IN_PROGRESS",
+  ];
+  const statusOptions = isEditMode ? worklogStatusLegendOrder : createStatusOptions;
+  const statusChangedInEdit =
+    isEditMode &&
+    initialValues?.status !== undefined &&
+    values.status !== initialValues.status;
 
   const teamOptions = useMemo(
     () => teams.map((team) => ({ label: team.name, value: String(team.id) })),
@@ -261,10 +271,18 @@ export function WorklogForm({
           return;
         }
 
+        if (statusChangedInEdit && !values.statusChangeReason?.trim()) {
+          setSubmitError("업무 상태 변경 사유를 입력해주세요.");
+          return;
+        }
+
         setSubmitError("");
         await onSubmit({
           ...values,
           actualHours: Number(actualHoursInput.trim()),
+          statusChangeReason: statusChangedInEdit
+            ? values.statusChangeReason?.trim()
+            : values.statusChangeReason,
         });
       }}
     >
@@ -548,7 +566,7 @@ export function WorklogForm({
                   <Select
                     className={controlClassName}
                     value={values.status}
-                    options={worklogStatusLegendOrder.map((status) => ({
+                    options={statusOptions.map((status) => ({
                       label: getWorklogStatusLabel(status),
                       value: status,
                     }))}
@@ -576,6 +594,26 @@ export function WorklogForm({
                     }
                   />
                 </div>
+                {isEditMode ? (
+                  <div className="mt-3 space-y-2">
+                    <Textarea
+                      className="min-h-[96px] rounded-2xl px-4 py-3 text-base"
+                      value={values.statusChangeReason ?? ""}
+                      onChange={(event) =>
+                        setValues({
+                          ...values,
+                          statusChangeReason: event.target.value,
+                        })
+                      }
+                      placeholder="상태 변경 사유를 입력해주세요."
+                    />
+                    {statusChangedInEdit ? (
+                      <p className="text-xs text-muted-foreground">
+                        상태를 변경하면 사유가 상태 이력에 함께 기록됩니다.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </Field>
 
               <Field label="담당자">

@@ -46,7 +46,7 @@ const navItems = [
     submenus: [
       { label: "부서 관리", href: "/department", roles: ["DIRECTOR", "DEPT_HEAD"] },
       { label: "팀 관리", href: "/team", roles: ["TEAM_LEAD", "MEMBER", "DIRECTOR", "DEPT_HEAD"] },
-      { label: "사용자 관리", href: "/user" },
+      { label: "사용자 관리", href: "/user", roles: ["DIRECTOR", "DEPT_HEAD"] },
     ],
   },
   {

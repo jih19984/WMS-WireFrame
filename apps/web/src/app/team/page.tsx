@@ -4,12 +4,11 @@ import { PageHeader } from "@/app/_common/components/PageHeader";
 import { Pagination } from "@/app/_common/components/Pagination";
 import { usePagination } from "@/app/_common/hooks/usePagination";
 import { useAuth } from "@/app/_common/hooks/useAuth";
-import { canManageTeams, isTeamLead } from "@/app/_common/service/access-control";
+import { canManageTeams } from "@/app/_common/service/access-control";
 import { useDepartment } from "@/app/department/_hooks/useDepartment";
 import { useTeam } from "@/app/team/_hooks/useTeam";
 import { TeamList } from "@/app/team/_components/TeamList";
 import { useUser } from "@/app/user/_hooks/useUser";
-import { UserList } from "@/app/user/_components/UserList";
 import { Button } from "@/components/ui/button";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
 import { Select } from "@/components/ui/select";
@@ -46,7 +45,6 @@ export default function TeamPage() {
   const readOnly = !canManage;
   const visibleMembers = canManage ? users : myMembers;
   const teamPagination = usePagination(filteredTeams, 3);
-  const memberPagination = usePagination(myMembers, 6);
   const activeTeams = filteredTeams.filter((team) => team.status === "ACTIVE").length;
 
   return (
@@ -111,19 +109,6 @@ export default function TeamPage() {
         ) : null}
       </div>
 
-      {isTeamLead(user) ? (
-        <div className="space-y-4 py-4">
-          <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
-            팀 구성원 명단
-          </h2>
-          <UserList users={memberPagination.items} readOnly />
-          <Pagination
-            page={memberPagination.page}
-            totalPages={memberPagination.totalPages}
-            onPageChange={memberPagination.setPage}
-          />
-        </div>
-      ) : null}
     </div>
   );
 }

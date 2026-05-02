@@ -7,6 +7,7 @@ export interface TeamFormValues {
   departmentId: number;
   leaderId: number;
   description: string;
+  members: number[];
   status: "ACTIVE" | "INACTIVE";
   startDate: string;
   endDate: string;

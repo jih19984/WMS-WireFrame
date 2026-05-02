@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { departments, users } from "@/app/_common/service/mock-db";
+import { users } from "@/app/_common/service/mock-db";
 import type { Team } from "@/app/team/_types/team.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?
   return (
     <div className="grid gap-4 xl:grid-cols-2">
       {teams.map((team) => {
-        const department = departments.find((item) => item.id === team.departmentId);
         const leader = users.find((item) => item.id === team.leaderId);
         return (
           <CardSpotlight
@@ -30,11 +29,7 @@ export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm">
-                  <p className="mb-1 text-[13px] text-muted-foreground">부서</p>
-                  <p className="truncate text-[15px] font-[500]">{department?.name}</p>
-                </div>
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">팀리더</p>
                   <p className="truncate text-[15px] font-[500]">{leader?.name}</p>

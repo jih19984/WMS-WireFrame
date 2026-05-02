@@ -22,6 +22,7 @@ export default function TeamEditPage() {
           departmentId: team.departmentId,
           leaderId: team.leaderId,
           description: team.description,
+          members: team.members,
           status: team.status,
           startDate: team.startDate,
           endDate: team.endDate,

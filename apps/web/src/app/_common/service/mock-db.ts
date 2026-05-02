@@ -36,14 +36,21 @@ export interface TeamRecord {
   name: string;
   departmentId: number;
   leaderId: number;
+  adminId?: number;
   status: "ACTIVE" | "INACTIVE";
   description: string;
   members: number[];
+  memberRoles?: TeamMemberRoleRecord[];
   startDate: string;
   endDate: string;
   createdAt: string;
   updatedAt: string;
   operationNote: string;
+}
+
+export interface TeamMemberRoleRecord {
+  userId: number;
+  role: string;
 }
 
 export interface UserSkillRecord {
@@ -240,6 +247,126 @@ export const teams: TeamRecord[] = [
     createdAt: "2026-03-20T09:00:00",
     updatedAt: "2026-04-09T09:00:00",
     operationNote: "복수 팀 소속 와이어프레임 검증용 서브 프로젝트입니다.",
+  },
+  {
+    id: 15,
+    name: "Data Quality Cell",
+    departmentId: 1,
+    leaderId: 10,
+    adminId: 2,
+    status: "ACTIVE",
+    description: "데이터 품질 규칙과 검증 기준을 정리하는 운영 팀",
+    members: [2, 10, 7],
+    memberRoles: [
+      { userId: 2, role: "품질 정책 승인" },
+      { userId: 10, role: "데이터 검증 리드" },
+      { userId: 7, role: "프론트 검증 화면 지원" },
+    ],
+    startDate: "2026-04-01",
+    endDate: "2026-07-15",
+    createdAt: "2026-04-01T09:00:00",
+    updatedAt: "2026-04-12T09:00:00",
+    operationNote: "활성 팀 필터와 페이지네이션 확인을 위한 데이터 품질 관리 팀입니다.",
+  },
+  {
+    id: 16,
+    name: "Workflow Automation",
+    departmentId: 3,
+    leaderId: 8,
+    adminId: 4,
+    status: "ACTIVE",
+    description: "반복 업무 자동화와 알림 트리거를 실험하는 팀",
+    members: [4, 8, 9],
+    memberRoles: [
+      { userId: 4, role: "자동화 방향 승인" },
+      { userId: 8, role: "AI 자동화 설계" },
+      { userId: 9, role: "시나리오 테스트" },
+    ],
+    startDate: "2026-04-05",
+    endDate: "2026-09-30",
+    createdAt: "2026-04-05T09:00:00",
+    updatedAt: "2026-04-15T09:00:00",
+    operationNote: "업무 자동화 검토를 진행 중인 활성 팀입니다.",
+  },
+  {
+    id: 17,
+    name: "Customer Demo TF",
+    departmentId: 2,
+    leaderId: 11,
+    adminId: 3,
+    status: "ACTIVE",
+    description: "고객 데모와 제안 시나리오를 빠르게 구성하는 태스크포스",
+    members: [3, 11, 12],
+    memberRoles: [
+      { userId: 3, role: "고객 커뮤니케이션 총괄" },
+      { userId: 11, role: "데모 스토리라인 리드" },
+      { userId: 12, role: "제안 자료 지원" },
+    ],
+    startDate: "2026-04-18",
+    endDate: "2026-06-10",
+    createdAt: "2026-04-18T09:00:00",
+    updatedAt: "2026-04-20T09:00:00",
+    operationNote: "고객 데모 준비 상태를 관리하는 단기 활성 팀입니다.",
+  },
+  {
+    id: 18,
+    name: "Legacy Migration",
+    departmentId: 3,
+    leaderId: 6,
+    adminId: 4,
+    status: "INACTIVE",
+    description: "레거시 업무관리 데이터 이전 검증을 마친 팀",
+    members: [4, 6, 7],
+    memberRoles: [
+      { userId: 4, role: "이관 범위 승인" },
+      { userId: 6, role: "마이그레이션 리드" },
+      { userId: 7, role: "UI 회귀 점검" },
+    ],
+    startDate: "2026-01-10",
+    endDate: "2026-03-31",
+    createdAt: "2026-01-10T09:00:00",
+    updatedAt: "2026-04-01T09:00:00",
+    operationNote: "검증이 완료되어 비활성화된 마이그레이션 팀입니다.",
+  },
+  {
+    id: 19,
+    name: "Search Relevance TF",
+    departmentId: 1,
+    leaderId: 5,
+    adminId: 2,
+    status: "INACTIVE",
+    description: "통합 검색 관련성 평가 기준을 정리했던 팀",
+    members: [2, 5, 10],
+    memberRoles: [
+      { userId: 2, role: "평가 기준 승인" },
+      { userId: 5, role: "검색 품질 리드" },
+      { userId: 10, role: "분석 데이터 정리" },
+    ],
+    startDate: "2026-02-01",
+    endDate: "2026-04-10",
+    createdAt: "2026-02-01T09:00:00",
+    updatedAt: "2026-04-11T09:00:00",
+    operationNote: "검색 평가 기준 정리가 끝나 비활성화된 팀입니다.",
+  },
+  {
+    id: 20,
+    name: "Alert Policy Review",
+    departmentId: 1,
+    leaderId: 10,
+    adminId: 2,
+    status: "INACTIVE",
+    description: "업무 알림 기준과 예외 정책을 검토했던 팀",
+    members: [2, 10, 8],
+    memberRoles: [
+      { userId: 2, role: "정책 의사결정" },
+      { userId: 10, role: "운영 기준 정리" },
+      { userId: 8, role: "AI 알림 기준 검토" },
+    ],
+    startDate: "2026-03-01",
+    endDate: "2026-04-25",
+    createdAt: "2026-03-01T09:00:00",
+    updatedAt: "2026-04-26T09:00:00",
+    operationNote: "알림 정책 초안 검토가 완료되어 보관 중인 비활성 팀입니다.",
   },
 ];
 
@@ -1105,7 +1232,7 @@ export const notifications: NotificationRecord[] = [
 ];
 
 let nextDepartmentId = 4;
-let nextTeamId = 15;
+let nextTeamId = 21;
 let nextUserId = 13;
 let nextWorklogId = 1009;
 let nextTagId = 8;

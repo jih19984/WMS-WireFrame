@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { users } from "@/app/_common/service/mock-db";
+import { departments, users } from "@/app/_common/service/mock-db";
 import type { Team } from "@/app/team/_types/team.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?
     <div className="grid gap-4 xl:grid-cols-2">
       {teams.map((team) => {
         const leader = users.find((item) => item.id === team.leaderId);
+        const fallbackAdminId = departments.find((item) => item.id === team.departmentId)?.leaderId;
+        const admin = users.find((item) => item.id === (team.adminId ?? fallbackAdminId));
         return (
           <CardSpotlight
             key={team.id}
@@ -29,10 +31,14 @@ export function TeamList({ teams, readOnly = false }: { teams: Team[]; readOnly?
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm">
-                  <p className="mb-1 text-[13px] text-muted-foreground">팀리더</p>
-                  <p className="truncate text-[15px] font-[500]">{leader?.name}</p>
+                  <p className="mb-1 text-[13px] text-muted-foreground">팀장</p>
+                  <p className="truncate text-[15px] font-[500]">{leader?.name ?? "-"}</p>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm">
+                  <p className="mb-1 text-[13px] text-muted-foreground">관리자</p>
+                  <p className="truncate text-[15px] font-[500]">{admin?.name ?? "-"}</p>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-muted/25 p-4 text-sm">
                   <p className="mb-1 text-[13px] text-muted-foreground">구성원</p>

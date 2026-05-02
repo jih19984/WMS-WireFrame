@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Building2, PenSquare } from "lucide-react";
 import { users } from "@/app/_common/service/mock-db";
 import type { Department } from "@/app/department/_types/department.types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
@@ -35,9 +34,6 @@ export function DepartmentList({
                   </div>
                   <CardDescription className="text-[14px] leading-relaxed line-clamp-2">{department.description}</CardDescription>
                 </div>
-                <Badge variant="secondary" className="px-3 py-1 font-[500]">
-                  {department.activeProjects} 진행중
-                </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

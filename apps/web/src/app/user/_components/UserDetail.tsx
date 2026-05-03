@@ -15,15 +15,19 @@ export function UserDetail({
   user,
   evaluations,
   showEvaluations,
-  canWriteEvaluations,
-  onCreateEvaluation,
 }: {
   user: UserProfile;
   evaluations: UserEvaluation[];
   showEvaluations: boolean;
-  canWriteEvaluations: boolean;
-  onCreateEvaluation: (content: string) => Promise<void>;
 }) {
+  const primaryTeamName =
+    teams.find((team) => team.id === user.primaryTeamId)?.name ?? "-";
+  const otherTeamNames = user.teamIds
+    .filter((teamId) => teamId !== user.primaryTeamId)
+    .map((teamId) => teams.find((team) => team.id === teamId)?.name)
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1.1fr]">
       <Card>
@@ -58,12 +62,18 @@ export function UserDetail({
           <div className="grid gap-3 sm:grid-cols-2">
             <InfoItem label="권한" value={getRoleLabel(user.role)} />
             <InfoItem label="직책" value={user.title} />
-            <InfoItem label="부서" value={departments.find((department) => department.id === user.departmentId)?.name ?? "-"} />
-            <InfoItem label="주 소속 팀" value={teams.find((team) => team.id === user.primaryTeamId)?.name ?? "-"} />
+            <InfoItem
+              label="부서"
+              value={departments.find((department) => department.id === user.departmentId)?.name ?? "-"}
+            />
+            <InfoItem
+              label="주소속팀"
+              value={primaryTeamName}
+            />
+            <InfoItem label="다른 소속 팀" value={otherTeamNames || "-"} />
             <InfoItem label="직급" value={user.position} />
             <InfoItem label="연락처" value={user.phone} />
             <InfoItem label="입사일" value={formatDate(user.joinDate)} />
-            <InfoItem label="추가 소속 팀" value={user.teamIds.map((teamId) => teams.find((team) => team.id === teamId)?.name ?? "-").join(", ")} />
           </div>
         </CardContent>
       </Card>
@@ -78,11 +88,7 @@ export function UserDetail({
           </CardContent>
         </Card>
         {showEvaluations ? (
-          <EvaluationList
-            evaluations={evaluations}
-            canWrite={canWriteEvaluations}
-            onCreate={onCreateEvaluation}
-          />
+          <EvaluationList evaluations={evaluations} />
         ) : (
           <Card>
             <CardContent className="pt-5 text-sm text-muted-foreground">

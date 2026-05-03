@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { UserRound } from "lucide-react";
 import {
   RegistrationField,
@@ -7,23 +7,59 @@ import {
 import { departments, teams } from "@/app/_common/service/mock-db";
 import type { UserFormValues } from "@/app/user/_types/user.types";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { getEmploymentStatusLabel, getRoleLabel } from "@/lib/utils";
+import { getEmploymentStatusLabel } from "@/lib/utils";
+
+const titleRoleMap = {
+  본부장: "DIRECTOR",
+  사업부장: "DEPT_HEAD",
+  팀장: "TEAM_LEAD",
+  팀원: "MEMBER",
+} as const satisfies Record<string, UserFormValues["role"]>;
+
+const titleOptions = Object.keys(titleRoleMap).map((title) => ({
+  label: title,
+  value: title,
+}));
+
+const basePositionOptions = ["과장", "대리", "부장", "사원", "상무", "이사", "차장"].map((position) => ({
+  label: position,
+  value: position,
+}));
+
+type UserTitle = keyof typeof titleRoleMap;
+
+const roleTitleMap: Record<UserFormValues["role"], UserTitle> = {
+  DIRECTOR: "본부장",
+  DEPT_HEAD: "사업부장",
+  TEAM_LEAD: "팀장",
+  MEMBER: "팀원",
+};
+
+function isUserTitle(value: string): value is UserTitle {
+  return Object.prototype.hasOwnProperty.call(titleRoleMap, value);
+}
+
+function getTitleFromRole(role: UserFormValues["role"]): UserTitle {
+  return roleTitleMap[role];
+}
 
 export function UserForm({
   initialValues,
   onSubmit,
   submitLabel,
+  children,
 }: {
   initialValues?: UserFormValues;
   onSubmit: (values: UserFormValues) => Promise<void> | void;
   submitLabel: string;
+  children?: ReactNode;
 }) {
   const controlClassName = "h-14 rounded-2xl px-4 text-base";
-  const [values, setValues] = useState<UserFormValues>(
-    initialValues ?? {
+  const [values, setValues] = useState<UserFormValues>(() => {
+    const baseValues =
+      initialValues ?? {
       name: "",
       email: "",
       role: "MEMBER",
@@ -31,35 +67,48 @@ export function UserForm({
       teamIds: [11],
       primaryTeamId: 11,
       position: "대리",
-      title: "개발자",
+      title: "팀원",
       phone: "010-0000-0000",
       employmentStatus: "ACTIVE",
       joinDate: "2026-04-01",
       profileImage: "https://i.pravatar.cc/150?u=new-user",
-    }
-  );
+    };
+    const normalizedTitle = isUserTitle(baseValues.title)
+      ? baseValues.title
+      : getTitleFromRole(baseValues.role);
+
+    return {
+      ...baseValues,
+      title: normalizedTitle,
+      role: titleRoleMap[normalizedTitle],
+    };
+  });
 
   const departmentOptions = useMemo(() => departments.map((department) => ({ label: department.name, value: String(department.id) })), []);
-  const teamOptions = useMemo(
-    () =>
-      teams
-        .filter((team) => team.departmentId === values.departmentId)
-        .map((team) => ({ label: team.name, value: String(team.id) })),
-    [values.departmentId]
-  );
+  const positionOptions = useMemo(() => {
+    const hasCurrentPosition = basePositionOptions.some(
+      (option) => option.value === values.position,
+    );
 
-  const toggleTeam = (teamId: number, checked: boolean) => {
-    const nextTeamIds = checked
-      ? Array.from(new Set([...values.teamIds, teamId]))
-      : values.teamIds.filter((item) => item !== teamId);
-    setValues({
-      ...values,
-      teamIds: nextTeamIds,
-      primaryTeamId: nextTeamIds.includes(values.primaryTeamId)
-        ? values.primaryTeamId
-        : nextTeamIds[0] ?? 0,
-    });
-  };
+    if (hasCurrentPosition || !values.position.trim()) {
+      return basePositionOptions;
+    }
+
+    return [
+      ...basePositionOptions,
+      { label: `${values.position} (기존값)`, value: values.position },
+    ];
+  }, [values.position]);
+  const assignedTeamOptions = useMemo(() => {
+    const assignedTeamIds = Array.from(
+      new Set([values.primaryTeamId, ...values.teamIds].filter((teamId) => teamId > 0)),
+    );
+
+    return assignedTeamIds
+      .map((teamId) => teams.find((team) => team.id === teamId))
+      .filter((team): team is (typeof teams)[number] => Boolean(team))
+      .map((team) => ({ label: team.name, value: String(team.id) }));
+  }, [values.primaryTeamId, values.teamIds]);
 
   return (
     <form
@@ -71,7 +120,7 @@ export function UserForm({
     >
       <RegistrationFormPanel
         eyebrow="USER PROFILE"
-        title="사용자 정보 및 권한 설정"
+        title="사용자 정보 및 직책 설정"
         icon={<UserRound className="size-4" />}
         className="min-h-[720px]"
       >
@@ -117,45 +166,32 @@ export function UserForm({
 
             <section className="space-y-5 border-t border-border/70 pt-6">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                직무 및 권한
+                직무
               </p>
-              <div className="grid gap-4 lg:grid-cols-3">
+              <div className="grid gap-4 lg:grid-cols-2">
                 <RegistrationField label="직급">
-                  <Input
+                  <Select
                     className={controlClassName}
-                    placeholder="직급을 입력하세요. 예: 대리"
                     value={values.position}
+                    options={positionOptions}
                     onChange={(event) =>
                       setValues({ ...values, position: event.target.value })
                     }
                   />
                 </RegistrationField>
                 <RegistrationField label="직책">
-                  <Input
-                    className={controlClassName}
-                    placeholder="직책을 입력하세요. 예: 개발자"
-                    value={values.title}
-                    onChange={(event) =>
-                      setValues({ ...values, title: event.target.value })
-                    }
-                  />
-                </RegistrationField>
-                <RegistrationField label="권한 역할">
                   <Select
                     className={controlClassName}
-                    value={values.role}
-                    options={[
-                      { label: getRoleLabel("DIRECTOR"), value: "DIRECTOR" },
-                      { label: getRoleLabel("DEPT_HEAD"), value: "DEPT_HEAD" },
-                      { label: getRoleLabel("TEAM_LEAD"), value: "TEAM_LEAD" },
-                      { label: getRoleLabel("MEMBER"), value: "MEMBER" },
-                    ]}
-                    onChange={(event) =>
+                    value={values.title}
+                    options={titleOptions}
+                    onChange={(event) => {
+                      const title = event.target.value as UserTitle;
                       setValues({
                         ...values,
-                        role: event.target.value as UserFormValues["role"],
-                      })
-                    }
+                        title,
+                        role: titleRoleMap[title],
+                      });
+                    }}
                   />
                 </RegistrationField>
               </div>
@@ -215,7 +251,7 @@ export function UserForm({
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
               조직 배치
             </p>
-            <RegistrationField label="소속 부서 및 주 소속 팀">
+            <RegistrationField label="소속 부서 및 주소속팀">
               <div className="grid gap-4">
                 <Select
                   className={controlClassName}
@@ -223,22 +259,21 @@ export function UserForm({
                   options={departmentOptions}
                   onChange={(event) => {
                     const departmentId = Number(event.target.value);
-                    const nextTeams = teams.filter(
-                      (team) => team.departmentId === departmentId,
-                    );
-                    const nextTeamIds = nextTeams.slice(0, 1).map((team) => team.id);
                     setValues({
                       ...values,
                       departmentId,
-                      teamIds: nextTeamIds,
-                      primaryTeamId: nextTeamIds[0] ?? 0,
                     });
                   }}
                 />
                 <Select
                   className={controlClassName}
                   value={String(values.primaryTeamId)}
-                  options={teamOptions}
+                  disabled={assignedTeamOptions.length === 0}
+                  options={
+                    assignedTeamOptions.length > 0
+                      ? assignedTeamOptions
+                      : [{ label: "소속 팀 없음", value: "0" }]
+                  }
                   onChange={(event) =>
                     setValues({
                       ...values,
@@ -246,35 +281,19 @@ export function UserForm({
                     })
                   }
                 />
-              </div>
-            </RegistrationField>
-
-            <RegistrationField label="복수 팀 소속">
-              <div className="registration-panel grid max-h-[360px] gap-2 overflow-auto rounded-2xl border p-4">
-                {teamOptions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    선택한 부서에 연결된 팀이 없습니다.
-                  </p>
-                ) : (
-                  teamOptions.map((team) => (
-                    <label
-                      key={team.value}
-                      className="flex items-center gap-3 rounded-2xl border border-border/70 bg-muted/25 px-3 py-3 text-sm transition-all hover:border-primary/35 hover:bg-primary/8"
-                    >
-                      <Checkbox
-                        checked={values.teamIds.includes(Number(team.value))}
-                        onChange={(event) =>
-                          toggleTeam(Number(team.value), event.target.checked)
-                        }
-                      />
-                      <span className="font-medium text-foreground">{team.label}</span>
-                    </label>
-                  ))
-                )}
+                <p className="rounded-2xl border border-border/70 bg-muted/25 px-4 py-3 text-sm leading-6 text-muted-foreground">
+                  팀 추가와 삭제는 팀 관리 탭에서만 변경합니다. 여기서는 이미 소속된 팀 중 주소속팀만 선택할 수 있습니다.
+                </p>
               </div>
             </RegistrationField>
           </div>
         </div>
+
+        {children ? (
+          <div className="border-t border-border/70 pt-8">
+            {children}
+          </div>
+        ) : null}
 
         <div className="flex justify-end pt-2">
           <Button

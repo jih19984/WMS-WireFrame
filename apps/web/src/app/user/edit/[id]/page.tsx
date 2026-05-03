@@ -1,18 +1,45 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
-import { canEditUserProfile } from "@/app/_common/service/access-control";
+import {
+  canEditUserProfile,
+  canManageUsers,
+  canViewEvaluations,
+  canWriteEvaluations,
+} from "@/app/_common/service/access-control";
 import { useAuth } from "@/app/_common/hooks/useAuth";
-import { users } from "@/app/_common/service/mock-db";
+import { subscribeMockDb, users } from "@/app/_common/service/mock-db";
 import { userService } from "@/app/user/_service/user.service";
 import { UserForm } from "@/app/user/_components/UserForm";
+import { EvaluationList } from "@/app/user/_components/EvaluationList";
+import { SkillEditor } from "@/app/user/_components/SkillEditor";
+import type { UserEvaluation } from "@/app/user/_types/user.types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function UserEditPage() {
   const navigate = useNavigate();
   const params = useParams();
   const { user: currentUser } = useAuth();
-  const user = useMemo(() => users.find((item) => item.id === Number(params.id)), [params.id]);
+  const [revision, setRevision] = useState(0);
+  const [evaluations, setEvaluations] = useState<UserEvaluation[]>([]);
+  const user = useMemo(() => users.find((item) => item.id === Number(params.id)), [params.id, revision]);
+  const showEvaluations = canViewEvaluations(currentUser);
+  const allowWriteEvaluations = canWriteEvaluations(currentUser, user?.id);
+  const allowManageSkills = canManageUsers(currentUser);
+
+  useEffect(() => {
+    const userId = Number(params.id);
+
+    const sync = async () => {
+      setRevision((current) => current + 1);
+      setEvaluations(await userService.getEvaluations(userId));
+    };
+
+    void sync();
+    return subscribeMockDb(() => {
+      void sync();
+    });
+  }, [params.id]);
 
   if (!user) return <div>사용자를 찾을 수 없습니다.</div>;
   if (!canEditUserProfile(currentUser, user.id)) {
@@ -52,7 +79,47 @@ export default function UserEditPage() {
           await userService.update(user.id, values);
           navigate("/user");
         }}
-      />
+      >
+        {allowManageSkills || showEvaluations ? (
+          <div className="grid gap-8 xl:grid-cols-2">
+            {allowManageSkills ? (
+              <section className="space-y-4">
+                <div>
+                  <h3 className="text-[18px] font-semibold tracking-[-0.04em] text-foreground">
+                    스킬 설정
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    본부장/사업부장은 스킬을 추가하고 Lv.1~5로 조정할 수 있습니다.
+                  </p>
+                </div>
+                <SkillEditor
+                  skills={user.skills}
+                  canManage
+                  onSaveSkill={async (skill) => {
+                    await userService.upsertSkill(user.id, skill);
+                  }}
+                />
+              </section>
+            ) : null}
+
+            {showEvaluations ? (
+              <EvaluationList
+                evaluations={evaluations}
+                canWrite={allowWriteEvaluations}
+                embedded
+                onCreate={async (content) => {
+                  if (!currentUser) return;
+                  await userService.addEvaluation(user.id, currentUser.id, content);
+                }}
+                onUpdate={async (evaluationId, content) => {
+                  if (!currentUser) return;
+                  await userService.updateEvaluation(evaluationId, content);
+                }}
+              />
+            ) : null}
+          </div>
+        ) : null}
+      </UserForm>
     </>
   );
 }

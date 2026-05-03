@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
 import {
   canEditUserProfile,
-  canWriteEvaluations,
   canViewEvaluations,
 } from "@/app/_common/service/access-control";
 import { useAuth } from "@/app/_common/hooks/useAuth";
@@ -19,7 +18,6 @@ export default function UserDetailPage() {
   const [evaluations, setEvaluations] = useState<UserEvaluation[]>([]);
   const user = useMemo(() => users.find((item) => item.id === Number(params.id)), [params.id]);
   const showEvaluations = canViewEvaluations(currentUser);
-  const allowWriteEvaluations = canWriteEvaluations(currentUser, user?.id);
   const allowEditProfile = canEditUserProfile(currentUser, user?.id);
 
   useEffect(() => {
@@ -52,11 +50,6 @@ export default function UserDetailPage() {
         user={user}
         evaluations={evaluations}
         showEvaluations={showEvaluations}
-        canWriteEvaluations={allowWriteEvaluations}
-        onCreateEvaluation={async (content) => {
-          if (!currentUser) return;
-          await userService.addEvaluation(user.id, currentUser.id, content);
-        }}
       />
     </>
   );

@@ -86,6 +86,7 @@ export interface EvaluationRecord {
   content: string;
   visibility: "MANAGER_ONLY";
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface WorklogStatusHistoryRecord {

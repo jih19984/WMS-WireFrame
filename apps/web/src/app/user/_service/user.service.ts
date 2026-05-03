@@ -127,4 +127,42 @@ export const userService = {
     notifyMockDb();
     return created;
   },
+  async updateEvaluation(evaluationId: number, content: string) {
+    const target = evaluations.find((evaluation) => evaluation.id === evaluationId);
+    if (!target) return undefined;
+
+    target.content = content;
+    target.updatedAt = new Date().toISOString();
+    notifyMockDb();
+
+    return target;
+  },
+  async upsertSkill(userId: number, skill: UserProfile["skills"][number]) {
+    const target = users.find((user) => user.id === userId);
+    if (!target) return undefined;
+
+    const name = skill.name.trim();
+    if (!name) return target;
+
+    const level = Math.min(5, Math.max(1, Math.round(skill.level)));
+    const existingSkill = target.skills.find(
+      (item) => item.name.trim().toLowerCase() === name.toLowerCase(),
+    );
+
+    if (existingSkill) {
+      existingSkill.level = level;
+      existingSkill.selfRated = false;
+    } else {
+      target.skills.push({
+        name,
+        level,
+        selfRated: false,
+      });
+    }
+
+    target.updatedAt = new Date().toISOString();
+    notifyMockDb();
+
+    return target;
+  },
 };

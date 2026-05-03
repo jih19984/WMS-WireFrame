@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { ChevronDown, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
 import { PageHeader } from "@/app/_common/components/PageHeader";
 import { Pagination } from "@/app/_common/components/Pagination";
@@ -8,22 +7,34 @@ import { useAuth } from "@/app/_common/hooks/useAuth";
 import {
   canManageUsers,
   getVisibleDepartments,
-  getVisibleTeams,
 } from "@/app/_common/service/access-control";
-import { departments, teams } from "@/app/_common/service/mock-db";
+import { departments } from "@/app/_common/service/mock-db";
 import { useUser } from "@/app/user/_hooks/useUser";
 import { UserList } from "@/app/user/_components/UserList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { cn, getEmploymentStatusLabel, getRoleLabel } from "@/lib/utils";
+import { cn, getEmploymentStatusLabel } from "@/lib/utils";
 
 const DEFAULT_FILTERS = {
   departmentId: "all",
-  teamId: "all",
-  role: "all",
+  position: "all",
   employmentStatus: "all",
 };
+
+const POSITION_ORDER = [
+  "사원",
+  "주임",
+  "대리",
+  "과장",
+  "차장",
+  "부장",
+  "이사",
+  "상무",
+  "전무",
+  "부사장",
+  "사장",
+];
 
 export default function UserPage() {
   const { user } = useAuth();
@@ -33,7 +44,28 @@ export default function UserPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const visibleDepartments = getVisibleDepartments(user, departments);
-  const visibleTeams = getVisibleTeams(user, teams);
+  const positionOptions = useMemo(() => {
+    return Array.from(new Set(users.map((member) => member.position).filter(Boolean))).sort(
+      (first, second) => {
+        const firstIndex = POSITION_ORDER.indexOf(first);
+        const secondIndex = POSITION_ORDER.indexOf(second);
+
+        if (firstIndex === -1 && secondIndex === -1) {
+          return first.localeCompare(second, "ko");
+        }
+
+        if (firstIndex === -1) {
+          return 1;
+        }
+
+        if (secondIndex === -1) {
+          return -1;
+        }
+
+        return firstIndex - secondIndex;
+      },
+    );
+  }, [users]);
   const activeFilterCount = Object.values(filters).filter(
     (value) => value !== "all",
   ).length;
@@ -44,12 +76,6 @@ export default function UserPage() {
     return users.filter((member) => {
       const departmentName =
         departments.find((department) => department.id === member.departmentId)?.name ?? "";
-      const primaryTeamName =
-        teams.find((team) => team.id === member.primaryTeamId)?.name ?? "";
-      const teamNames = teams
-        .filter((team) => member.teamIds.includes(team.id))
-        .map((team) => team.name)
-        .join(" ");
       const searchableText = [
         member.name,
         member.email,
@@ -57,9 +83,6 @@ export default function UserPage() {
         member.title,
         member.phone,
         departmentName,
-        primaryTeamName,
-        teamNames,
-        getRoleLabel(member.role),
         getEmploymentStatusLabel(member.employmentStatus),
       ]
         .join(" ")
@@ -69,14 +92,12 @@ export default function UserPage() {
       const departmentMatch =
         filters.departmentId === "all" ||
         String(member.departmentId) === filters.departmentId;
-      const teamMatch =
-        filters.teamId === "all" || member.teamIds.includes(Number(filters.teamId));
-      const roleMatch = filters.role === "all" || member.role === filters.role;
+      const positionMatch = filters.position === "all" || member.position === filters.position;
       const statusMatch =
         filters.employmentStatus === "all" ||
         member.employmentStatus === filters.employmentStatus;
 
-      return queryMatch && departmentMatch && teamMatch && roleMatch && statusMatch;
+      return queryMatch && departmentMatch && positionMatch && statusMatch;
     });
   }, [filters, query, users]);
 
@@ -90,11 +111,6 @@ export default function UserPage() {
           <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
             사용자 탐색
           </h2>
-          {canManage ? (
-            <Button asChild variant="default" className="h-10 min-w-32 px-6 text-sm font-semibold">
-              <Link to="/user/create">사용자 등록</Link>
-            </Button>
-          ) : null}
         </div>
 
         <div className="flex flex-col gap-4">
@@ -105,7 +121,7 @@ export default function UserPage() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 className="h-12 pl-11"
-                placeholder="이름, 이메일, 부서, 팀, 직급으로 검색하세요"
+                placeholder="이름, 이메일, 부서, 직급으로 검색하세요"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -158,7 +174,7 @@ export default function UserPage() {
                     <RefreshCw className="size-4" />
                   </Button>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                       부서
@@ -182,42 +198,21 @@ export default function UserPage() {
                   </div>
                   <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                      팀
+                      직급
                     </p>
                     <Select
-                      value={filters.teamId}
+                      value={filters.position}
                       options={[
-                        { label: "전체 팀", value: "all" },
-                        ...visibleTeams.map((team) => ({
-                          label: team.name,
-                          value: String(team.id),
+                        { label: "전체 직급", value: "all" },
+                        ...positionOptions.map((position) => ({
+                          label: position,
+                          value: position,
                         })),
                       ]}
                       onChange={(event) =>
                         setFilters((prev) => ({
                           ...prev,
-                          teamId: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                      권한
-                    </p>
-                    <Select
-                      value={filters.role}
-                      options={[
-                        { label: "전체 권한", value: "all" },
-                        { label: getRoleLabel("DIRECTOR"), value: "DIRECTOR" },
-                        { label: getRoleLabel("DEPT_HEAD"), value: "DEPT_HEAD" },
-                        { label: getRoleLabel("TEAM_LEAD"), value: "TEAM_LEAD" },
-                        { label: getRoleLabel("MEMBER"), value: "MEMBER" },
-                      ]}
-                      onChange={(event) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          role: event.target.value,
+                          position: event.target.value,
                         }))
                       }
                     />

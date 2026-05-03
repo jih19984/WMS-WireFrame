@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { ChevronDown, RefreshCw, Search, SlidersHorizontal } from "lucide-react";
 import {
   canCreateWorklog,
-  getVisibleDepartments,
   getVisibleTeams,
   getVisibleUsers,
 } from "@/app/_common/service/access-control";
@@ -12,7 +11,7 @@ import { Pagination } from "@/app/_common/components/Pagination";
 import { LegendHelpDialog } from "@/app/_common/components/LegendHelpDialog";
 import { usePagination } from "@/app/_common/hooks/usePagination";
 import { useAuth } from "@/app/_common/hooks/useAuth";
-import { departments, tags, teams, users } from "@/app/_common/service/mock-db";
+import { tags, teams, users } from "@/app/_common/service/mock-db";
 import { ImportanceBadge } from "@/app/worklog/_components/ImportanceBadge";
 import { StatusBadge } from "@/app/worklog/_components/StatusBadge";
 import { useWorklog } from "@/app/worklog/_hooks/useWorklog";
@@ -26,13 +25,11 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import {
   cn,
-  getAiStatusLabel,
   getImportanceLabel,
   getWorklogStatusLabel,
 } from "@/lib/utils";
 
 const DEFAULT_FILTERS = {
-  departmentId: "all",
   teamId: "all",
   status: "all",
   importance: "all",
@@ -48,7 +45,6 @@ export default function WorklogPage() {
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const visibleDepartments = getVisibleDepartments(user, departments);
   const visibleTeams = getVisibleTeams(user, teams);
   const visibleUsers = getVisibleUsers(user, users);
   const activeFilterCount = Object.values(filters).filter(
@@ -60,31 +56,8 @@ export default function WorklogPage() {
     const now = new Date("2026-04-13T23:59:59");
 
     return worklogs.filter((worklog) => {
-      const team = teams.find((team) => team.id === worklog.teamId);
-      const teamName = team?.name.toLowerCase() ?? "";
-      const author = users.find((member) => member.id === worklog.authorId);
-      const authorName = author?.name.toLowerCase() ?? "";
-      const tagNames = tags
-        .filter((tag) => worklog.tagIds.includes(tag.id))
-        .map((tag) => tag.name.toLowerCase())
-        .join(" ");
-      const searchableText = [
-        worklog.title,
-        worklog.aiSummary,
-        teamName,
-        authorName,
-        tagNames,
-        getWorklogStatusLabel(worklog.status),
-        getImportanceLabel(worklog.importance),
-        getAiStatusLabel(worklog.aiStatus),
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const queryMatch = !normalizedQuery || searchableText.includes(normalizedQuery);
-      const departmentMatch =
-        filters.departmentId === "all" ||
-        String(team?.departmentId) === filters.departmentId;
+      const queryMatch =
+        !normalizedQuery || worklog.title.toLowerCase().includes(normalizedQuery);
       const teamMatch =
         filters.teamId === "all" || String(worklog.teamId) === filters.teamId;
       const statusMatch =
@@ -107,7 +80,6 @@ export default function WorklogPage() {
 
       return (
         queryMatch &&
-        departmentMatch &&
         teamMatch &&
         statusMatch &&
         importanceMatch &&
@@ -116,7 +88,7 @@ export default function WorklogPage() {
         periodMatch
       );
     });
-  }, [filters, query, worklogs, visibleDepartments, visibleTeams, visibleUsers]);
+  }, [filters, query, worklogs]);
   const worklogPagination = usePagination(filteredWorklogs, 4);
 
   return (
@@ -139,7 +111,7 @@ export default function WorklogPage() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 className="h-12 pl-11"
-                placeholder="업무 제목, 요약, 작성자, 팀, 상태로 검색하세요"
+                placeholder="업무 제목으로 검색하세요"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -193,20 +165,6 @@ export default function WorklogPage() {
                   </Button>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">부서</p>
-                    <Select
-                      value={filters.departmentId}
-                      options={[
-                        { label: "전체 부서", value: "all" },
-                        ...visibleDepartments.map((department) => ({
-                          label: department.name,
-                          value: String(department.id),
-                        })),
-                      ]}
-                      onChange={(event) => setFilters((prev) => ({ ...prev, departmentId: event.target.value }))}
-                    />
-                  </div>
                   <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">팀</p>
                     <Select

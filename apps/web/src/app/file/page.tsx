@@ -5,12 +5,10 @@ import {
   RefreshCw,
   Search,
   SlidersHorizontal,
-  Trash2,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
 import { Pagination } from "@/app/_common/components/Pagination";
-import { ConfirmDialog } from "@/app/_common/components/ConfirmDialog";
 import { LegendHelpDialog } from "@/app/_common/components/LegendHelpDialog";
 import { usePagination } from "@/app/_common/hooks/usePagination";
 import { worklogs } from "@/app/_common/service/mock-db";
@@ -20,7 +18,7 @@ import { FileAiStatusBadge } from "@/app/file/_components/FileAiStatusBadge";
 import { FileFilters } from "@/app/file/_components/FileFilters";
 import { FileList } from "@/app/file/_components/FileList";
 import { fileAiStatusLegendOrder } from "@/app/file/_components/file-ai-badge-config";
-import type { FileFiltersValue, FileItem } from "@/app/file/_types/file.types";
+import type { FileFiltersValue } from "@/app/file/_types/file.types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -49,7 +47,7 @@ function getWorklogStatusFilter(value: string | null): FileFiltersValue["worklog
 }
 
 export default function FilePage() {
-  const { files, deleteFile } = useFile();
+  const { files } = useFile();
   const [searchParams, setSearchParams] = useSearchParams();
   const worklogStatusQuery = searchParams.get("worklogStatus");
   const [query, setQuery] = useState("");
@@ -58,7 +56,6 @@ export default function FilePage() {
     ...DEFAULT_FILE_FILTERS,
     worklogStatus: getWorklogStatusFilter(worklogStatusQuery),
   });
-  const [deleteTarget, setDeleteTarget] = useState<FileItem | null>(null);
   const [selectedFileIds, setSelectedFileIds] = useState<number[]>([]);
   const activeFilterCount = Object.values(filters).filter(
     (value) => value !== "ALL",
@@ -158,14 +155,6 @@ export default function FilePage() {
       anchor.remove();
       URL.revokeObjectURL(url);
     });
-  };
-
-  const handleBulkDelete = async () => {
-    for (const fileId of selectedFileIds) {
-      await deleteFile(fileId);
-    }
-    setSelectedFileIds([]);
-    setDeleteTarget(null);
   };
 
   return (
@@ -286,16 +275,6 @@ export default function FilePage() {
               <Download className="size-4" />
               다운로드
             </Button>
-            <Button
-              variant="default"
-              className="h-11 min-w-28 px-5 text-sm font-semibold"
-              type="button"
-              disabled={selectedFileIds.length === 0}
-              onClick={() => setDeleteTarget(selectedFiles[0] ?? null)}
-            >
-              <Trash2 className="size-4" />
-              삭제
-            </Button>
           </div>
         </div>
         <FileList
@@ -309,35 +288,6 @@ export default function FilePage() {
           onPageChange={filePagination.setPage}
         />
       </div>
-      <ConfirmDialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-        title="파일을 삭제할까요?"
-        description="소프트 삭제 처리되며, 운영 기준으로는 Object Storage 파일과 벡터 임베딩도 함께 삭제되는 흐름입니다."
-        confirmText={selectedFileIds.length > 1 ? `선택 ${selectedFileIds.length}건 삭제` : "삭제"}
-        tone="destructive"
-        onConfirm={handleBulkDelete}
-      >
-        {deleteTarget ? (
-          <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm">
-            {selectedFileIds.length > 1 ? (
-              <>
-                <p className="font-medium">선택한 파일 {selectedFileIds.length}건을 삭제합니다.</p>
-                <p className="mt-1 text-muted-foreground">
-                  삭제 후에는 파일 목록과 AI 파이프라인 연동 대상에서 제외됩니다.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="font-medium">{deleteTarget.originalName}</p>
-                <p className="mt-1 text-muted-foreground">{deleteTarget.type} / {deleteTarget.size}</p>
-              </>
-            )}
-          </div>
-        ) : null}
-      </ConfirmDialog>
     </div>
   );
 }

@@ -8,12 +8,14 @@ export function StatCard({
   hint,
   icon: Icon,
   tone = "default",
+  onClick,
 }: {
   label: string;
   value: string | number;
   hint: string;
   icon: LucideIcon;
   tone?: "default" | "success" | "warning" | "destructive";
+  onClick?: () => void;
 }) {
   const toneMap = {
     default: {
@@ -35,7 +37,22 @@ export function StatCard({
   } as const;
 
   return (
-    <CardSpotlight className="h-full rounded-[26px] transition-transform duration-300 hover:-translate-y-1">
+    <CardSpotlight
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      className={cn(
+        "h-full rounded-[26px] transition-transform duration-300 hover:-translate-y-1",
+        onClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+      )}
+    >
       <div className="flex min-h-[188px] flex-col gap-6 p-6">
         <div className="flex w-full items-center justify-between">
           <p className="text-[15px] font-medium tracking-[-0.02em] text-muted-foreground">{label}</p>

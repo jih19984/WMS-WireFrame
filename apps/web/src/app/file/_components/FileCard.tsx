@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
 import { useState } from "react";
 import { worklogs } from "@/app/_common/service/mock-db";
 import { FileAiStatusBadge } from "@/app/file/_components/FileAiStatusBadge";
+import { StatusBadge } from "@/app/worklog/_components/StatusBadge";
 import { WorklogPreviewDialog } from "@/app/worklog/_components/WorklogPreviewDialog";
 import type { FileItem } from "@/app/file/_types/file.types";
 import { CardContent } from "@/components/ui/card";
@@ -53,16 +53,19 @@ export function FileCard({
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <span className="text-muted-foreground">소속 업무일지</span>
               {worklog ? (
-                <button
-                  type="button"
-                  className="font-medium text-primary hover:underline"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setPreviewOpen(true);
-                  }}
-                >
-                  {worklog.title}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="font-medium text-primary hover:underline"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setPreviewOpen(true);
+                    }}
+                  >
+                    {worklog.title}
+                  </button>
+                  <StatusBadge status={worklog.status} />
+                </>
               ) : (
                 <span className="text-muted-foreground">연결 없음</span>
               )}

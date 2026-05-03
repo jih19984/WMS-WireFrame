@@ -7,11 +7,14 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/app/_common/components/PageHeader";
 import { Pagination } from "@/app/_common/components/Pagination";
 import { ConfirmDialog } from "@/app/_common/components/ConfirmDialog";
 import { LegendHelpDialog } from "@/app/_common/components/LegendHelpDialog";
 import { usePagination } from "@/app/_common/hooks/usePagination";
+import { worklogs } from "@/app/_common/service/mock-db";
+import type { WorklogStatus } from "@/app/_common/types/api.types";
 import { useFile } from "@/app/file/_hooks/useFile";
 import { FileAiStatusBadge } from "@/app/file/_components/FileAiStatusBadge";
 import { FileFilters } from "@/app/file/_components/FileFilters";
@@ -23,14 +26,37 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
+const DEFAULT_FILE_FILTERS: FileFiltersValue = {
+  type: "ALL",
+  period: "ALL",
+  aiStatus: "ALL",
+  worklogStatus: "ALL",
+};
+
+const validWorklogStatuses: WorklogStatus[] = [
+  "PENDING",
+  "IN_PROGRESS",
+  "DONE",
+  "ON_HOLD",
+  "FAILED",
+  "CANCELLED",
+];
+
+function getWorklogStatusFilter(value: string | null): FileFiltersValue["worklogStatus"] {
+  return validWorklogStatuses.includes(value as WorklogStatus)
+    ? (value as WorklogStatus)
+    : "ALL";
+}
+
 export default function FilePage() {
   const { files, deleteFile } = useFile();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const worklogStatusQuery = searchParams.get("worklogStatus");
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FileFiltersValue>({
-    type: "ALL",
-    period: "ALL",
-    aiStatus: "ALL",
+    ...DEFAULT_FILE_FILTERS,
+    worklogStatus: getWorklogStatusFilter(worklogStatusQuery),
   });
   const [deleteTarget, setDeleteTarget] = useState<FileItem | null>(null);
   const [selectedFileIds, setSelectedFileIds] = useState<number[]>([]);
@@ -43,6 +69,28 @@ export default function FilePage() {
     [files]
   );
 
+  useEffect(() => {
+    setFilters((current) => ({
+      ...current,
+      worklogStatus: getWorklogStatusFilter(worklogStatusQuery),
+    }));
+  }, [worklogStatusQuery]);
+
+  const handleFilterChange = (nextFilters: FileFiltersValue) => {
+    setFilters(nextFilters);
+    setSearchParams((current) => {
+      const nextParams = new URLSearchParams(current);
+
+      if (nextFilters.worklogStatus === "ALL") {
+        nextParams.delete("worklogStatus");
+      } else {
+        nextParams.set("worklogStatus", nextFilters.worklogStatus);
+      }
+
+      return nextParams;
+    });
+  };
+
   const filteredFiles = useMemo(() => {
     const now = new Date("2026-04-09T23:59:59");
     const normalizedQuery = query.trim().toLowerCase();
@@ -54,6 +102,9 @@ export default function FilePage() {
         file.originalName.toLowerCase().includes(normalizedQuery);
       const matchesAiStatus =
         filters.aiStatus === "ALL" || file.aiStatus === filters.aiStatus;
+      const worklog = worklogs.find((item) => item.id === file.worklogId);
+      const matchesWorklogStatus =
+        filters.worklogStatus === "ALL" || worklog?.status === filters.worklogStatus;
       const uploadedAt = new Date(file.uploadedAt);
       const diffDays = Math.floor((now.getTime() - uploadedAt.getTime()) / (1000 * 60 * 60 * 24));
       const matchesPeriod =
@@ -61,7 +112,7 @@ export default function FilePage() {
         (filters.period === "7D" && diffDays <= 7) ||
         (filters.period === "30D" && diffDays <= 30) ||
         (filters.period === "90D" && diffDays <= 90);
-      return matchesType && matchesKeyword && matchesPeriod && matchesAiStatus;
+      return matchesType && matchesKeyword && matchesPeriod && matchesAiStatus && matchesWorklogStatus;
     });
   }, [files, filters, query]);
   const filePagination = usePagination(filteredFiles, 6);
@@ -179,17 +230,13 @@ export default function FilePage() {
                     aria-label="필터 초기화"
                     onClick={() => {
                       setQuery("");
-                      setFilters({
-                        type: "ALL",
-                        period: "ALL",
-                        aiStatus: "ALL",
-                      });
+                      handleFilterChange(DEFAULT_FILE_FILTERS);
                     }}
                   >
                     <RefreshCw className="size-4" />
                   </Button>
                 </div>
-                <FileFilters value={filters} onChange={setFilters} fileTypes={fileTypes} />
+                <FileFilters value={filters} onChange={handleFilterChange} fileTypes={fileTypes} />
               </div>
             </div>
           </div>

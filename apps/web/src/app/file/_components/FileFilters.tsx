@@ -1,6 +1,7 @@
 import type { FileFiltersValue } from "@/app/file/_types/file.types";
+import { worklogStatusLegendOrder } from "@/app/worklog/_components/worklog-badge-config";
 import { Select } from "@/components/ui/select";
-import { getAiStatusLabel } from "@/lib/utils";
+import { getAiStatusLabel, getWorklogStatusLabel } from "@/lib/utils";
 
 export function FileFilters({
   value,
@@ -12,7 +13,7 @@ export function FileFilters({
   fileTypes: string[];
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       <div className="space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">형식</p>
         <Select
@@ -51,6 +52,25 @@ export function FileFilters({
             { label: getAiStatusLabel("FAILED"), value: "FAILED" },
           ]}
           onChange={(event) => onChange({ ...value, aiStatus: event.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">업무 상태</p>
+        <Select
+          value={value.worklogStatus}
+          options={[
+            { label: "전체 업무 상태", value: "ALL" },
+            ...worklogStatusLegendOrder.map((status) => ({
+              label: getWorklogStatusLabel(status),
+              value: status,
+            })),
+          ]}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              worklogStatus: event.target.value as FileFiltersValue["worklogStatus"],
+            })
+          }
         />
       </div>
     </div>

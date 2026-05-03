@@ -7,6 +7,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -129,6 +130,7 @@ function sortByDueDate(a: WorklogRecord, b: WorklogRecord) {
 }
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { worklogs } = useWorklog();
   const { files } = useFile();
@@ -306,6 +308,10 @@ export default function DashboardPage() {
       ? "전사"
       : "내 부서";
   const adminGroupUnitLabel = comparisonMode === "DIRECTOR" ? "부서" : "팀";
+  const openInProgressFiles = () => {
+    navigate("/file?worklogStatus=IN_PROGRESS");
+  };
+
   return (
     <div className="flex flex-col gap-6 pb-12">
       <PageHeader
@@ -322,6 +328,7 @@ export default function DashboardPage() {
               hint={`${adminScopeLabel} 기간 내 생성 업무 중 진행중 비율`}
               icon={BarChart3}
               tone="default"
+              onClick={openInProgressFiles}
             />
             <StatCard
               label={mode === "DIRECTOR" ? "부하 편중 지수" : "팀 부하 편중 지수"}
@@ -366,6 +373,7 @@ export default function DashboardPage() {
               }
               icon={BarChart3}
               tone="default"
+              onClick={openInProgressFiles}
             />
             <StatCard
               label="AI 파이프라인 성공률"
@@ -413,6 +421,7 @@ export default function DashboardPage() {
               hint="지금 실행해야 하는 업무"
               icon={BarChart3}
               tone="default"
+              onClick={openInProgressFiles}
             />
             <StatCard
               label="완료"

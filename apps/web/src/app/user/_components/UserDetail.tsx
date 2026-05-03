@@ -8,7 +8,7 @@ import { SkillEditor } from "@/app/user/_components/SkillEditor";
 import {
   formatDate,
   getEmploymentStatusLabel,
-  getRoleLabel,
+  getRoleTitleLabel,
 } from "@/lib/utils";
 
 export function UserDetail({
@@ -44,7 +44,6 @@ export function UserDetail({
               <p className="text-lg font-semibold">{user.name}</p>
               <p className="text-sm text-muted-foreground">{user.email}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Badge variant="secondary">{getRoleLabel(user.role)}</Badge>
                 <Badge
                   variant={
                     user.employmentStatus === "ACTIVE"
@@ -60,8 +59,7 @@ export function UserDetail({
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <InfoItem label="권한" value={getRoleLabel(user.role)} />
-            <InfoItem label="직책" value={user.title} />
+            <InfoItem label="직책" value={getRoleTitleLabel(user.role)} />
             <InfoItem
               label="부서"
               value={departments.find((department) => department.id === user.departmentId)?.name ?? "-"}

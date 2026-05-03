@@ -8,7 +8,6 @@ import {
   Mail,
   Phone,
   Save,
-  ShieldCheck,
   UserRound,
   Users,
 } from "lucide-react";
@@ -30,7 +29,7 @@ import { Select } from "@/components/ui/select";
 import {
   formatDate,
   getEmploymentStatusLabel,
-  getRoleLabel,
+  getRoleTitleLabel,
 } from "@/lib/utils";
 
 type Feedback = {
@@ -231,7 +230,7 @@ export default function ProfilePage() {
                     <p className="text-[28px] font-bold tracking-[-0.06em] text-foreground">
                       {profile.name}
                     </p>
-                    <Badge variant="secondary">{getRoleLabel(profile.role)}</Badge>
+                    <Badge variant="secondary">{getRoleTitleLabel(profile.role)}</Badge>
                     <Badge
                       variant={
                         profile.employmentStatus === "ACTIVE"
@@ -381,8 +380,7 @@ export default function ProfilePage() {
                 <ReadOnlyInfo icon={Building2} label="소속 부서" value={departmentName} />
                 <ReadOnlyInfo icon={Users} label="주 소속 팀" value={primaryTeamName} />
                 <ReadOnlyInfo icon={Users} label="소속 팀 목록" value={teamNames} />
-                <ReadOnlyInfo icon={BadgeCheck} label="직급 / 직책" value={`${profile.position} · ${profile.title}`} />
-                <ReadOnlyInfo icon={ShieldCheck} label="권한 역할" value={getRoleLabel(profile.role)} />
+                <ReadOnlyInfo icon={BadgeCheck} label="직급 / 직책" value={`${profile.position} · ${getRoleTitleLabel(profile.role)}`} />
                 <ReadOnlyInfo icon={BadgeCheck} label="상태" value={getEmploymentStatusLabel(profile.employmentStatus)} />
               </div>
             </aside>

@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
-import { getEmploymentStatusLabel, getRoleLabel } from "@/lib/utils";
+import { getEmploymentStatusLabel, getRoleTitleLabel } from "@/lib/utils";
 
 export function UserList({ users, readOnly = false }: { users: UserProfile[]; readOnly?: boolean }) {
   return (
@@ -35,7 +35,7 @@ export function UserList({ users, readOnly = false }: { users: UserProfile[]; re
                       {user.name}
                     </p>
                     <Badge variant="default" className="px-2.5 tracking-tight">
-                      {getRoleLabel(user.role)}
+                      {getRoleTitleLabel(user.role)}
                     </Badge>
                     <Badge
                       variant={
@@ -51,7 +51,7 @@ export function UserList({ users, readOnly = false }: { users: UserProfile[]; re
                   </div>
                   <p className="mt-1 text-[14px] text-muted-foreground">{user.email}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {user.position} · {user.title} · 연락처 {user.phone}
+                    {user.position} · {getRoleTitleLabel(user.role)} · 연락처 {user.phone}
                   </p>
                 </div>
               </div>

@@ -41,6 +41,13 @@ export const roleLabelMap: Record<UserRole, string> = {
   MEMBER: "구성원",
 };
 
+export const roleTitleLabelMap: Record<UserRole, string> = {
+  DIRECTOR: "본부장",
+  DEPT_HEAD: "사업부장",
+  TEAM_LEAD: "팀장",
+  MEMBER: "팀원",
+};
+
 export const worklogStatusLabelMap: Record<WorklogStatus, string> = {
   PENDING: "대기",
   IN_PROGRESS: "진행 중",
@@ -77,6 +84,10 @@ export const teamStatusLabelMap: Record<"ACTIVE" | "INACTIVE", string> = {
 
 export function getRoleLabel(role: UserRole) {
   return roleLabelMap[role];
+}
+
+export function getRoleTitleLabel(role: UserRole) {
+  return roleTitleLabelMap[role];
 }
 
 export function getWorklogStatusLabel(status: WorklogStatus) {

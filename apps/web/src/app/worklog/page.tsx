@@ -30,6 +30,7 @@ import {
 } from "@/lib/utils";
 
 const DEFAULT_FILTERS = {
+  teamStatus: "all",
   teamId: "all",
   status: "all",
   importance: "all",
@@ -43,6 +44,7 @@ export default function WorklogPage() {
   const { worklogs } = useWorklog();
   const canCreate = canCreateWorklog(user);
   const [query, setQuery] = useState("");
+  const [draftQuery, setDraftQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const visibleTeams = getVisibleTeams(user, teams);
@@ -58,6 +60,9 @@ export default function WorklogPage() {
     return worklogs.filter((worklog) => {
       const queryMatch =
         !normalizedQuery || worklog.title.toLowerCase().includes(normalizedQuery);
+      const worklogTeam = teams.find((team) => team.id === worklog.teamId);
+      const teamStatusMatch =
+        filters.teamStatus === "all" || worklogTeam?.status === filters.teamStatus;
       const teamMatch =
         filters.teamId === "all" || String(worklog.teamId) === filters.teamId;
       const statusMatch =
@@ -80,6 +85,7 @@ export default function WorklogPage() {
 
       return (
         queryMatch &&
+        teamStatusMatch &&
         teamMatch &&
         statusMatch &&
         importanceMatch &&
@@ -95,29 +101,36 @@ export default function WorklogPage() {
     <div className="flex flex-col gap-6">
       <PageHeader title="업무 검색" />
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div>
           <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">업무 탐색</h2>
-          {canCreate ? (
-            <Button asChild variant="default" className="h-10 min-w-32 px-6 text-sm font-semibold">
-              <Link to="/worklog/create">업무 등록</Link>
-            </Button>
-          ) : null}
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                value={draftQuery}
+                onChange={(event) => setDraftQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+                  setQuery(draftQuery);
+                }}
                 className="h-12 pl-11"
                 placeholder="업무 제목으로 검색하세요"
               />
             </div>
             <div className="flex items-center gap-2">
               <Button
+                type="button"
+                className="h-10 min-w-[92px] px-4 text-sm font-semibold"
+                onClick={() => setQuery(draftQuery)}
+              >
+                <Search className="size-4" />
+                검색
+              </Button>
+              <Button
                 variant="outline"
-                className="h-10"
+                className="h-10 min-w-[92px] px-4"
                 onClick={() => setShowFilters((prev) => !prev)}
               >
                 <SlidersHorizontal className="size-4" />
@@ -139,13 +152,13 @@ export default function WorklogPage() {
 
           <div
             className={cn(
-              "grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
+              "grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out",
               showFilters
-                ? "mt-0 grid-rows-[1fr] opacity-100"
-                : "mt-[-4px] grid-rows-[0fr] opacity-0",
+                ? "mt-0 grid-rows-[1fr] overflow-visible opacity-100"
+                : "mt-[-4px] grid-rows-[0fr] overflow-hidden opacity-0",
             )}
           >
-            <div className="overflow-hidden">
+            <div className={showFilters ? "overflow-visible" : "overflow-hidden"}>
               <div className="space-y-4 pt-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -158,6 +171,7 @@ export default function WorklogPage() {
                     aria-label="필터 초기화"
                     onClick={() => {
                       setQuery("");
+                      setDraftQuery("");
                       setFilters(DEFAULT_FILTERS);
                     }}
                   >
@@ -165,6 +179,18 @@ export default function WorklogPage() {
                   </Button>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">팀 상태</p>
+                    <Select
+                      value={filters.teamStatus}
+                      options={[
+                        { label: "전체", value: "all" },
+                        { label: "활성", value: "ACTIVE" },
+                        { label: "비활성", value: "INACTIVE" },
+                      ]}
+                      onChange={(event) => setFilters((prev) => ({ ...prev, teamStatus: event.target.value }))}
+                    />
+                  </div>
                   <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">팀</p>
                     <Select
@@ -180,7 +206,7 @@ export default function WorklogPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">상태</p>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">업무 상태</p>
                     <Select
                       value={filters.status}
                       options={[
@@ -260,30 +286,37 @@ export default function WorklogPage() {
         </div>
         <div className="pt-2">
           <div className="pb-4">
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">
-                표시 중인 업무 <span className="ml-1 font-semibold text-foreground">{filteredWorklogs.length}건</span>
-              </p>
-              <LegendHelpDialog
-                title="업무 아이콘 안내"
-                description="업무 카드에서 보이는 상태와 중요도 아이콘 의미를 빠르게 확인할 수 있습니다."
-                buttonLabel="업무 아이콘 안내 열기"
-                sections={[
-                  {
-                    title: "상태",
-                    content: worklogStatusLegendOrder.map((status) => (
-                      <StatusBadge key={status} status={status} />
-                    )),
-                  },
-                  {
-                    title: "중요도",
-                    content: worklogImportanceLegendOrder.map((importance) => (
-                      <ImportanceBadge key={importance} importance={importance} />
-                    )),
-                  },
-                ]}
-                className="h-8 w-8"
-              />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">
+                  표시 중인 업무 <span className="ml-1 font-semibold text-foreground">{filteredWorklogs.length}건</span>
+                </p>
+                <LegendHelpDialog
+                  title="업무 아이콘 안내"
+                  description="업무 카드에서 보이는 상태와 중요도 아이콘 의미를 빠르게 확인할 수 있습니다."
+                  buttonLabel="업무 아이콘 안내 열기"
+                  sections={[
+                    {
+                      title: "상태",
+                      content: worklogStatusLegendOrder.map((status) => (
+                        <StatusBadge key={status} status={status} />
+                      )),
+                    },
+                    {
+                      title: "중요도",
+                      content: worklogImportanceLegendOrder.map((importance) => (
+                        <ImportanceBadge key={importance} importance={importance} />
+                      )),
+                    },
+                  ]}
+                  className="h-8 w-8"
+                />
+              </div>
+              {canCreate ? (
+                <Button asChild variant="default" className="h-10 min-w-32 px-6 text-sm font-semibold">
+                  <Link to="/worklog/create">업무 등록</Link>
+                </Button>
+              ) : null}
             </div>
           </div>
           <WorklogList worklogs={worklogPagination.items} />

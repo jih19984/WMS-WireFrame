@@ -24,11 +24,18 @@ import { StatCard } from "@/app/_common/components/StatCard";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import type { FileRecord, TagRecord, WorklogRecord } from "@/app/_common/service/mock-db";
 import {
-  allTeamsScopeValue,
-  readStoredTeamScope,
-  teamScopeChangedEvent,
-  type TeamScopeValue,
-} from "@/app/_common/service/team-scope-preference";
+  dashboardViewChangedEvent,
+  defaultDashboardScopeValue,
+  getDashboardScopeOptions,
+  getDashboardViewModeLabel,
+  getDashboardVisibleTeamIds,
+  normalizeDashboardViewPreference,
+  parseDashboardDepartmentScope,
+  readStoredDashboardViewPreference,
+  type DashboardScopeValue,
+  type DashboardViewMode,
+  writeStoredDashboardViewPreference,
+} from "@/app/_common/service/dashboard-view-preference";
 import { useDepartment } from "@/app/department/_hooks/useDepartment";
 import { useFile } from "@/app/file/_hooks/useFile";
 import { useNotification } from "@/app/notification/_hooks/useNotification";
@@ -51,11 +58,12 @@ import {
 
 const DASHBOARD_NOW = new Date("2026-04-13T00:00:00");
 
-type DashboardMode = "DIRECTOR" | "DEPT_HEAD" | "TEAM_LEAD" | "MEMBER";
+type ComparisonMode = "DEPARTMENT" | "TEAM";
 
 type DashboardGroup = {
   id: number;
   name: string;
+  scope: DashboardScopeValue;
   total: number;
   done: number;
   inProgress: number;
@@ -140,66 +148,80 @@ export default function DashboardPage() {
   const { departments } = useDepartment();
   const { tags } = useTag();
   const [previewWorklogId, setPreviewWorklogId] = useState<number | null>(null);
-  const [selectedTeamScope, setSelectedTeamScope] = useState<TeamScopeValue>(
-    () => readStoredTeamScope(),
+  const [dashboardPreference, setDashboardPreference] = useState(
+    () => readStoredDashboardViewPreference(),
   );
 
   useEffect(() => {
-    const handleTeamScopeChange = (event: Event) => {
-      setSelectedTeamScope((event as CustomEvent<TeamScopeValue>).detail);
+    const handleDashboardViewChange = (event: Event) => {
+      setDashboardPreference(
+        (event as CustomEvent<ReturnType<typeof readStoredDashboardViewPreference>>)
+          .detail,
+      );
     };
 
-    window.addEventListener(teamScopeChangedEvent, handleTeamScopeChange);
-    return () => window.removeEventListener(teamScopeChangedEvent, handleTeamScopeChange);
+    window.addEventListener(dashboardViewChangedEvent, handleDashboardViewChange);
+    return () =>
+      window.removeEventListener(
+        dashboardViewChangedEvent,
+        handleDashboardViewChange,
+      );
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const normalizedPreference = normalizeDashboardViewPreference(
+      dashboardPreference,
+      user,
+      teams,
+      departments,
+    );
+
+    if (
+      normalizedPreference.mode === dashboardPreference.mode &&
+      normalizedPreference.scope === dashboardPreference.scope
+    ) {
+      return;
+    }
+
+    setDashboardPreference(normalizedPreference);
+    writeStoredDashboardViewPreference(normalizedPreference);
+  }, [dashboardPreference, departments, teams, user]);
 
   if (!user) return null;
 
-  const mode: DashboardMode = user.role;
-  const ledTeamIds = teams.filter((team) => team.leaderId === user.id).map((team) => team.id);
-  const teamLeadScopeIds = ledTeamIds.length > 0 ? ledTeamIds : user.teamIds;
-
-  const requestedTeamId =
-    selectedTeamScope !== allTeamsScopeValue && Number.isFinite(Number(selectedTeamScope))
-      ? Number(selectedTeamScope)
-      : allTeamsScopeValue;
-
-  const availableTeams =
-    mode === "DIRECTOR"
-      ? teams
-      : mode === "DEPT_HEAD"
-        ? teams.filter((team) => team.departmentId === user.departmentId)
-        : mode === "TEAM_LEAD"
-          ? teams.filter((team) => teamLeadScopeIds.includes(team.id))
-          : teams.filter((team) => user.teamIds.includes(team.id));
-
-  const effectiveSelectedTeamId =
-    requestedTeamId !== allTeamsScopeValue &&
-    availableTeams.some((team) => team.id === requestedTeamId)
-      ? requestedTeamId
-      : allTeamsScopeValue;
-  const activeTeamIds =
-    effectiveSelectedTeamId === allTeamsScopeValue
-      ? availableTeams.map((team) => team.id)
-      : [effectiveSelectedTeamId];
-  const isTeamFilterActive = effectiveSelectedTeamId !== allTeamsScopeValue;
-  const scopedTeams = availableTeams.filter((team) => activeTeamIds.includes(team.id));
+  const viewPreference = normalizeDashboardViewPreference(
+    dashboardPreference,
+    user,
+    teams,
+    departments,
+  );
+  const viewMode = viewPreference.mode;
+  const activeScopeLabel =
+    getDashboardScopeOptions(viewMode, user, teams, departments).find(
+      (option) => option.value === viewPreference.scope,
+    )?.label ?? getDashboardViewModeLabel(viewMode);
+  const selectedDepartmentId = parseDashboardDepartmentScope(viewPreference.scope);
+  const activeTeamIds = getDashboardVisibleTeamIds(viewPreference, user, teams);
+  const scopedTeams = teams.filter((team) => activeTeamIds.includes(team.id));
   const scopedTeamIds = scopedTeams.map((team) => team.id);
 
-  const scopedUsers =
-    mode === "MEMBER"
-      ? users.filter((member) => member.id === user.id)
-      : users.filter((member) => {
-          if (isTeamFilterActive) {
-            return member.teamIds.some((teamId) => activeTeamIds.includes(teamId));
-          }
-          if (mode === "DIRECTOR") return true;
-          if (mode === "DEPT_HEAD") return member.departmentId === user.departmentId;
-          return member.teamIds.some((teamId) => activeTeamIds.includes(teamId));
-        });
+  const scopedUsers = users.filter((member) => {
+    if (viewMode === "PERSONAL") return member.id === user.id;
+    if (viewPreference.scope.startsWith("TEAM:") || viewMode === "TEAM_OPERATOR") {
+      return member.teamIds.some((teamId) => activeTeamIds.includes(teamId));
+    }
+    if (viewMode === "ADMIN_A" && selectedDepartmentId !== null) {
+      return member.departmentId === selectedDepartmentId;
+    }
+    if (viewMode === "ADMIN_A") return true;
+    if (viewMode === "ADMIN_B") return member.departmentId === user.departmentId;
+    return false;
+  });
 
   const scopedWorklogs = worklogs.filter((worklog) => {
-    if (mode === "MEMBER") {
+    if (viewMode === "PERSONAL") {
       return worklog.authorId === user.id && activeTeamIds.includes(worklog.teamId);
     }
     return scopedTeamIds.includes(worklog.teamId);
@@ -210,7 +232,9 @@ export default function DashboardPage() {
   const scopedFiles = files.filter((file) => {
     const worklog = worklogs.find((item) => item.id === file.worklogId);
     if (!worklog) return false;
-    if (mode === "MEMBER") return file.uploadedBy === user.id;
+    if (viewMode === "PERSONAL") {
+      return file.uploadedBy === user.id && activeTeamIds.includes(worklog.teamId);
+    }
     return scopedWorklogs.some((item) => item.id === worklog.id);
   });
 
@@ -253,15 +277,18 @@ export default function DashboardPage() {
     .sort(sortByDueDate);
   const totalHours = scopedWorklogs.reduce((sum, worklog) => sum + worklog.actualHours, 0);
 
-  const comparisonMode: DashboardMode =
-    mode === "DIRECTOR" && !isTeamFilterActive ? "DIRECTOR" : "DEPT_HEAD";
+  const comparisonMode: ComparisonMode =
+    viewMode === "ADMIN_A" && viewPreference.scope === defaultDashboardScopeValue
+      ? "DEPARTMENT"
+      : "TEAM";
   const comparisonGroups =
-    mode === "DIRECTOR" && !isTeamFilterActive
+    comparisonMode === "DEPARTMENT"
       ? departments.map((department) => {
           const groupTeams = teams.filter((team) => team.departmentId === department.id);
           return createDashboardGroup(
             department.id,
             department.name,
+            `DEPARTMENT:${department.id}`,
             groupTeams.map((team) => team.id),
             worklogs,
             users.filter((member) => member.departmentId === department.id),
@@ -271,6 +298,7 @@ export default function DashboardPage() {
           createDashboardGroup(
             team.id,
             team.name,
+            `TEAM:${team.id}`,
             [team.id],
             worklogs,
             users.filter((member) => member.teamIds.includes(team.id)),
@@ -301,13 +329,22 @@ export default function DashboardPage() {
     };
   });
 
-  const roleCopy = getRoleDashboardCopy(mode);
-  const adminScopeLabel = isTeamFilterActive
-    ? "선택 팀"
-    : mode === "DIRECTOR"
-      ? "전사"
-      : "내 부서";
-  const adminGroupUnitLabel = comparisonMode === "DIRECTOR" ? "부서" : "팀";
+  const roleCopy = getRoleDashboardCopy(viewMode);
+  const adminScopeLabel = activeScopeLabel;
+  const adminGroupUnitLabel = comparisonMode === "DEPARTMENT" ? "부서" : "팀";
+  const handleSelectComparisonGroup = (scope: DashboardScopeValue) => {
+    if (viewMode !== "ADMIN_A" && viewMode !== "ADMIN_B") return;
+
+    const nextPreference = normalizeDashboardViewPreference(
+      { mode: viewMode, scope },
+      user,
+      teams,
+      departments,
+    );
+
+    setDashboardPreference(nextPreference);
+    writeStoredDashboardViewPreference(nextPreference);
+  };
   const openInProgressFiles = () => {
     navigate("/file?worklogStatus=IN_PROGRESS");
   };
@@ -316,10 +353,10 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6 pb-12">
       <PageHeader
         title="대시보드"
-        description={roleCopy.description}
+        description={`${getDashboardDisplayScopeLabel(viewMode, activeScopeLabel)} 기준 - ${roleCopy.description}`}
       />
 
-      {mode === "DIRECTOR" || mode === "DEPT_HEAD" ? (
+      {viewMode === "ADMIN_A" || viewMode === "ADMIN_B" ? (
         <>
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
@@ -331,7 +368,7 @@ export default function DashboardPage() {
               onClick={openInProgressFiles}
             />
             <StatCard
-              label={mode === "DIRECTOR" ? "부하 편중 지수" : "팀 부하 편중 지수"}
+              label={comparisonMode === "DEPARTMENT" ? "부서 부하 편중 지수" : "팀 부하 편중 지수"}
               value={getLoadBalanceIndex(comparisonGroups)}
               hint={`${adminGroupUnitLabel} 간 업무량 분산도, 1에 가까울수록 균형`}
               icon={Users}
@@ -356,18 +393,22 @@ export default function DashboardPage() {
           <section className="grid gap-5 xl:grid-cols-2">
             <CompletionComparison groups={comparisonGroups} mode={comparisonMode} />
             <RecentNotifications notifications={scopedNotifications} />
-            <WorkloadPanel groups={comparisonGroups} mode={comparisonMode} />
+            <WorkloadPanel
+              groups={comparisonGroups}
+              mode={comparisonMode}
+              onSelectGroup={handleSelectComparisonGroup}
+            />
             <DueRiskPanel worklogs={dueRiskWorklogs} teams={teams} onOpenWorklog={setPreviewWorklogId} />
           </section>
         </>
-      ) : mode === "TEAM_LEAD" ? (
+      ) : viewMode === "TEAM_OPERATOR" ? (
         <>
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
               label="진행 중인 업무 수"
               value={getProgressRatioValue(inProgressWorklogs.length, scopedWorklogs.length)}
               hint={
-                effectiveSelectedTeamId === allTeamsScopeValue
+                viewPreference.scope === defaultDashboardScopeValue
                   ? "내 모든 리드 팀 통합"
                   : "선택 팀 진행률"
               }
@@ -495,6 +536,7 @@ export default function DashboardPage() {
 function createDashboardGroup(
   id: number,
   name: string,
+  scope: DashboardScopeValue,
   teamIds: number[],
   allWorklogs: WorklogRecord[],
   groupUsers: { id: number }[],
@@ -505,6 +547,7 @@ function createDashboardGroup(
   return {
     id,
     name,
+    scope,
     total: groupWorklogs.length,
     done: groupWorklogs.filter((worklog) => worklog.status === "DONE").length,
     inProgress: groupWorklogs.filter((worklog) => worklog.status === "IN_PROGRESS").length,
@@ -517,27 +560,27 @@ function createDashboardGroup(
   };
 }
 
-function getRoleDashboardCopy(mode: DashboardMode) {
+function getRoleDashboardCopy(mode: DashboardViewMode) {
   const copy = {
-    DIRECTOR: {
+    ADMIN_A: {
       title: "전체 본부 운영 스냅샷",
       description: "전사 범위에서 부서 간 편차, 리스크, AI 파이프라인 건강도를 비교합니다.",
       intent: "본부장 뷰는 평균보다 편차를 먼저 보여주고, 문제가 큰 부서나 실패 파이프라인으로 바로 드릴다운하는 의사결정형 화면입니다.",
       filters: ["부서 전체", "기간 자유", "상태/중요도/태그"],
     },
-    DEPT_HEAD: {
+    ADMIN_B: {
       title: "내 부서 팀 운영 스냅샷",
       description: "소속 부서 안에서 팀별 완료율과 부하 편중을 비교합니다.",
       intent: "사업부장 뷰는 부서 범위를 고정하고 팀 간 부하와 마감 리스크를 동시에 확인하는 리소스 배분형 화면입니다.",
       filters: ["내 부서 고정", "팀/작성자 선택", "상태/중요도/태그"],
     },
-    TEAM_LEAD: {
+    TEAM_OPERATOR: {
       title: "팀원 상태 및 긴급 대응",
       description: "리드 팀 범위에서 구성원별 진행 상태와 긴급 업무를 우선 확인합니다.",
       intent: "팀리더 뷰는 순위보다 상태 파악에 집중하고, 긴급 업무와 마감 리스크를 바로 열어 대응하는 운영형 화면입니다.",
       filters: ["내 리드 팀", "팀원 선택", "긴급/마감 중심"],
     },
-    MEMBER: {
+    PERSONAL: {
       title: "개인 실행 및 마감 관리",
       description: "본인 업무만 기준으로 오늘 처리할 업무, 선행 업무 대기, 마감 리스크를 정리합니다.",
       intent: "팀원 뷰는 비교보다 실행을 우선하며, 오늘 할 일과 막힌 이유가 먼저 보이는 개인 작업대입니다.",
@@ -546,6 +589,14 @@ function getRoleDashboardCopy(mode: DashboardMode) {
   } as const;
 
   return copy[mode];
+}
+
+function getDashboardDisplayScopeLabel(
+  mode: DashboardViewMode,
+  scopeLabel: string,
+) {
+  if (mode === "PERSONAL") return scopeLabel;
+  return `${getDashboardViewModeLabel(mode)} · ${scopeLabel}`;
 }
 
 function ScopeMetric({ label, value }: { label: string; value: string }) {
@@ -562,7 +613,7 @@ function CompletionComparison({
   mode,
 }: {
   groups: DashboardGroup[];
-  mode: DashboardMode;
+  mode: ComparisonMode;
 }) {
   const chartData = groups.map((group) => ({
     name: group.name.replace("사업부", ""),
@@ -575,7 +626,7 @@ function CompletionComparison({
     <CardSpotlight className="h-[380px] rounded-[26px]">
       <CardHeader>
         <CardTitle>
-          {mode === "DIRECTOR" ? "부서별 완료율 비교" : "팀별 완료율 비교"}
+          {mode === "DEPARTMENT" ? "부서별 완료율 비교" : "팀별 완료율 비교"}
         </CardTitle>
       </CardHeader>
       <CardContent className="h-[285px]">
@@ -610,21 +661,28 @@ function CompletionComparison({
 function WorkloadPanel({
   groups,
   mode,
+  onSelectGroup,
 }: {
   groups: DashboardGroup[];
-  mode: DashboardMode;
+  mode: ComparisonMode;
+  onSelectGroup?: (scope: DashboardScopeValue) => void;
 }) {
   return (
     <CardSpotlight className="h-[380px] overflow-hidden rounded-[26px]">
       <CardHeader>
-        <CardTitle>{mode === "DIRECTOR" ? "부서별 업무 부하" : "팀별 업무 부하"}</CardTitle>
+        <CardTitle>{mode === "DEPARTMENT" ? "부서별 업무 부하" : "팀별 업무 부하"}</CardTitle>
       </CardHeader>
       <CardContent className="dashboard-scrollbar max-h-[276px] space-y-3 overflow-y-auto [scrollbar-gutter:stable]">
         {groups.map((group) => {
           const workloadPerMember = getWorkloadPerMember(group);
 
           return (
-            <div key={group.id} className="rounded-2xl border border-border/60 bg-muted/25 p-4">
+            <button
+              key={group.id}
+              type="button"
+              className="w-full rounded-2xl border border-border/60 bg-muted/25 p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/8"
+              onClick={() => onSelectGroup?.(group.scope)}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-medium text-foreground">{group.name}</p>
@@ -643,7 +701,7 @@ function WorkloadPanel({
                   <Badge variant="outline">1인당 업무 부하</Badge>
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </CardContent>

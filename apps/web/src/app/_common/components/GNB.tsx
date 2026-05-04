@@ -11,14 +11,22 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/app/_common/hooks/useAuth";
 import { resolveBreadcrumbs } from "@/app/_common/service/breadcrumbs";
 import {
-  allTeamsScopeValue,
-  readStoredTeamScope,
-  readStoredTeamScopeMode,
-  type TeamScopeMode,
-  type TeamScopeValue,
-  writeStoredTeamScope,
-  writeStoredTeamScopeMode,
-} from "@/app/_common/service/team-scope-preference";
+  dashboardViewChangedEvent,
+  defaultDashboardScopeValue,
+  getAvailableDashboardViewModes,
+  getDefaultDashboardScopeForMode,
+  getDashboardScopeOptions,
+  getDashboardViewModeDescription,
+  getDashboardViewModeLabel,
+  getDashboardVisibleTeamIds,
+  normalizeDashboardViewPreference,
+  readStoredDashboardViewPreference,
+  type DashboardViewPreference,
+  type DashboardScopeValue,
+  type DashboardViewMode,
+  writeStoredDashboardViewPreference,
+} from "@/app/_common/service/dashboard-view-preference";
+import { useDepartment } from "@/app/department/_hooks/useDepartment";
 import { useNotification } from "@/app/notification/_hooks/useNotification";
 import { resolveNotificationDeepLink } from "@/app/notification/_utils/resolveNotificationDeepLink";
 import { useTeam } from "@/app/team/_hooks/useTeam";
@@ -44,34 +52,25 @@ const notificationTypeLabelMap = {
   WORKLOAD: "업무량",
 } as const;
 
-function getInitialScopeMode() {
-  const storedScope = readStoredTeamScope();
-  return readStoredTeamScopeMode(
-    storedScope === allTeamsScopeValue ? "PRIMARY" : "CUSTOM",
-  );
-}
-
 export function GNB() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { teams } = useTeam();
+  const { departments } = useDepartment();
   const { worklogs } = useWorklog();
   const { notifications, markRead } = useNotification();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showScopeSettings, setShowScopeSettings] = useState(false);
   const [isDark, setIsDark] = useState(true);
-  const [selectedTeamScope, setSelectedTeamScope] = useState<TeamScopeValue>(
-    () => readStoredTeamScope(),
+  const [dashboardPreference, setDashboardPreference] = useState(
+    () => readStoredDashboardViewPreference(),
   );
-  const [teamScopeMode, setTeamScopeMode] = useState<TeamScopeMode>(
-    getInitialScopeMode,
+  const [draftViewMode, setDraftViewMode] = useState<DashboardViewMode>(
+    () => dashboardPreference.mode,
   );
-  const [draftScopeMode, setDraftScopeMode] = useState<TeamScopeMode>(
-    teamScopeMode,
-  );
-  const [draftTeamScope, setDraftTeamScope] = useState<TeamScopeValue>(
-    () => readStoredTeamScope(),
+  const [draftScope, setDraftScope] = useState<DashboardScopeValue>(
+    () => dashboardPreference.scope,
   );
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +92,21 @@ export function GNB() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleDashboardViewChange = (event: Event) => {
+      setDashboardPreference(
+        (event as CustomEvent<DashboardViewPreference>).detail,
+      );
+    };
+
+    window.addEventListener(dashboardViewChangedEvent, handleDashboardViewChange);
+    return () =>
+      window.removeEventListener(
+        dashboardViewChangedEvent,
+        handleDashboardViewChange,
+      );
+  }, []);
+
   const toggleTheme = () => {
     const root = window.document.documentElement;
     const nextDark = !root.classList.contains("dark");
@@ -102,48 +116,63 @@ export function GNB() {
   };
 
   const breadcrumbs = resolveBreadcrumbs(location.pathname);
-  const availableDashboardTeams =
-    !user
-      ? []
-      : user.role === "DIRECTOR"
-        ? teams
-        : user.role === "DEPT_HEAD"
-          ? teams.filter((team) => team.departmentId === user.departmentId)
-          : user.role === "TEAM_LEAD"
-            ? teams.filter(
-                (team) => team.leaderId === user.id || user.teamIds.includes(team.id),
-              )
-            : teams.filter((team) => user.teamIds.includes(team.id));
-  const primaryTeam =
-    availableDashboardTeams.find((team) => team.id === user?.primaryTeamId) ??
-    availableDashboardTeams[0];
-  const primaryTeamScope = primaryTeam
-    ? (String(primaryTeam.id) as TeamScopeValue)
-    : allTeamsScopeValue;
-  const selectedCustomTeamScope =
-    selectedTeamScope !== allTeamsScopeValue &&
-    availableDashboardTeams.some((team) => String(team.id) === selectedTeamScope)
-      ? selectedTeamScope
-      : primaryTeamScope;
-  const effectiveSelectedTeamScope =
-    teamScopeMode === "PRIMARY" ? primaryTeamScope : selectedCustomTeamScope;
-  const activeTeam = availableDashboardTeams.find(
-    (team) => String(team.id) === effectiveSelectedTeamScope,
-  );
-  const scopeButtonLabel =
-    teamScopeMode === "PRIMARY"
-      ? `주소속팀 · ${primaryTeam?.name ?? "미설정"}`
-      : `선택팀 · ${activeTeam?.name ?? "미설정"}`;
+  const normalizedDashboardPreference = user
+    ? normalizeDashboardViewPreference(
+        dashboardPreference,
+        user,
+        teams,
+        departments,
+      )
+    : null;
+  const availableDashboardModes = user
+    ? getAvailableDashboardViewModes(user, teams)
+    : [];
+  const activeScopeOptions =
+    user && normalizedDashboardPreference
+      ? getDashboardScopeOptions(
+          normalizedDashboardPreference.mode,
+          user,
+          teams,
+          departments,
+        )
+      : [];
+  const activeScopeLabel =
+    activeScopeOptions.find(
+      (option) => option.value === normalizedDashboardPreference?.scope,
+    )?.label ?? "내 업무";
+  const scopeButtonLabel = normalizedDashboardPreference
+    ? normalizedDashboardPreference.mode === "PERSONAL"
+      ? activeScopeLabel
+      : `${getDashboardViewModeLabel(normalizedDashboardPreference.mode)} · ${activeScopeLabel}`
+    : "대시보드 기준";
+  const visibleDashboardTeamIds =
+    user && normalizedDashboardPreference
+      ? getDashboardVisibleTeamIds(normalizedDashboardPreference, user, teams)
+      : [];
+  const draftScopeOptions = user
+    ? getDashboardScopeOptions(draftViewMode, user, teams, departments)
+    : [];
+  const normalizedDraftScope = draftScopeOptions.some(
+    (option) => option.value === draftScope,
+  )
+    ? draftScope
+    : user
+      ? getDefaultDashboardScopeForMode(draftViewMode, user, teams)
+      : defaultDashboardScopeValue;
+  const showScopeSelector =
+    draftScopeOptions.length > 1 ||
+    (draftViewMode === "PERSONAL" && draftScopeOptions.length > 0);
   const scopedNotifications = notifications.filter((notification) => {
-    if (effectiveSelectedTeamScope === allTeamsScopeValue) return true;
+    if (!normalizedDashboardPreference) return true;
     if (!notification.referenceId) return true;
 
     const referenceWorklog = worklogs.find(
       (worklog) => worklog.id === notification.referenceId,
     );
     if (!referenceWorklog) return true;
+    if (normalizedDashboardPreference.mode === "PERSONAL") return true;
 
-    return String(referenceWorklog.teamId) === effectiveSelectedTeamScope;
+    return visibleDashboardTeamIds.includes(referenceWorklog.teamId);
   });
   const scopedUnreadCount = scopedNotifications.filter(
     (notification) => !notification.isRead,
@@ -151,49 +180,57 @@ export function GNB() {
   const recentScopedNotifications = scopedNotifications.slice(0, 3);
 
   useEffect(() => {
-    if (!user || availableDashboardTeams.length === 0) return;
-    if (teamScopeMode !== "PRIMARY") return;
-    if (primaryTeamScope === allTeamsScopeValue) return;
-    if (selectedTeamScope === primaryTeamScope) return;
+    if (!user) return;
 
-    setSelectedTeamScope(primaryTeamScope);
-    writeStoredTeamScopeMode("PRIMARY");
-    writeStoredTeamScope(primaryTeamScope);
+    const normalizedPreference = normalizeDashboardViewPreference(
+      dashboardPreference,
+      user,
+      teams,
+      departments,
+    );
+
+    if (
+      normalizedPreference.mode === dashboardPreference.mode &&
+      normalizedPreference.scope === dashboardPreference.scope
+    ) {
+      return;
+    }
+
+    setDashboardPreference(normalizedPreference);
+    writeStoredDashboardViewPreference(normalizedPreference);
   }, [
-    availableDashboardTeams.length,
-    primaryTeamScope,
-    selectedTeamScope,
-    teamScopeMode,
+    dashboardPreference,
+    departments,
+    teams,
     user,
   ]);
 
   useEffect(() => {
-    if (!showScopeSettings) return;
+    if (!showScopeSettings || !normalizedDashboardPreference) return;
 
-    setDraftScopeMode(teamScopeMode);
-    setDraftTeamScope(
-      teamScopeMode === "PRIMARY" ? primaryTeamScope : selectedCustomTeamScope,
-    );
+    setDraftViewMode(normalizedDashboardPreference.mode);
+    setDraftScope(normalizedDashboardPreference.scope);
   }, [
-    primaryTeamScope,
-    selectedCustomTeamScope,
+    normalizedDashboardPreference?.mode,
+    normalizedDashboardPreference?.scope,
     showScopeSettings,
-    teamScopeMode,
   ]);
 
   const saveScopeSettings = () => {
-    const nextScope =
-      draftScopeMode === "PRIMARY"
-        ? primaryTeamScope
-        : draftTeamScope !== allTeamsScopeValue &&
-            availableDashboardTeams.some((team) => String(team.id) === draftTeamScope)
-          ? draftTeamScope
-          : primaryTeamScope;
+    if (!user) return;
 
-    setTeamScopeMode(draftScopeMode);
-    setSelectedTeamScope(nextScope);
-    writeStoredTeamScopeMode(draftScopeMode);
-    writeStoredTeamScope(nextScope);
+    const nextPreference = normalizeDashboardViewPreference(
+      {
+        mode: draftViewMode,
+        scope: normalizedDraftScope,
+      },
+      user,
+      teams,
+      departments,
+    );
+
+    setDashboardPreference(nextPreference);
+    writeStoredDashboardViewPreference(nextPreference);
     setShowScopeSettings(false);
   };
 
@@ -243,17 +280,17 @@ export function GNB() {
           {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </Button>
 
-        {user && availableDashboardTeams.length > 0 ? (
+        {user && availableDashboardModes.length > 0 ? (
           <Button
             type="button"
             variant="outline"
             onClick={() => setShowScopeSettings(true)}
-            className="hidden h-10 border-white/12 bg-black/10 px-3 text-white/82 hover:bg-black/18 hover:text-white lg:inline-flex"
+            className="inline-flex h-10 border-white/12 bg-black/10 px-3 text-white/82 hover:bg-black/18 hover:text-white"
             title={scopeButtonLabel}
           >
             <Settings2 className="size-4" />
             <span className="hidden max-w-[180px] truncate xl:inline">
-              필터 설정
+              대시보드 기준
             </span>
           </Button>
         ) : null}
@@ -391,71 +428,60 @@ export function GNB() {
       <Dialog open={showScopeSettings} onOpenChange={setShowScopeSettings}>
         <DialogContent className="w-[min(92vw,560px)] border-white/14 bg-[#071227] text-white shadow-[0_28px_90px_-30px_rgba(0,0,0,0.9)]">
           <DialogHeader>
-            <DialogTitle className="text-white">필터 기준 설정</DialogTitle>
+            <DialogTitle className="text-white">대시보드 보기 기준</DialogTitle>
             <DialogDescription className="text-white/62">
-              알림 센터와 대시보드에서 사용할 팀 기준을 선택합니다.
+              권한과 팀 역할에 따라 관리자, 팀 운영자, 내 업무 관점을 전환합니다.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3">
-            <button
-              type="button"
-              className={cn(
-                "w-full rounded-2xl border px-4 py-4 text-left transition-colors",
-                draftScopeMode === "PRIMARY"
-                  ? "border-primary/70 bg-primary/18"
-                  : "border-white/12 bg-white/5 hover:bg-white/8",
-              )}
-              onClick={() => {
-                setDraftScopeMode("PRIMARY");
-                setDraftTeamScope(primaryTeamScope);
-              }}
-            >
-              <span className="block text-sm font-semibold text-white">주소속팀 기준</span>
-              <span className="mt-1 block text-xs leading-5 text-white/58">
-                {primaryTeam?.name ?? "주소속팀 없음"}을 기준으로 알림과 대시보드를 봅니다.
-              </span>
-            </button>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/50">
+                View
+              </p>
+              {availableDashboardModes.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={cn(
+                    "w-full rounded-2xl border px-4 py-4 text-left transition-colors",
+                    draftViewMode === mode
+                      ? "border-primary/70 bg-primary/18"
+                      : "border-white/12 bg-white/5 hover:bg-white/8",
+                  )}
+                  onClick={() => {
+                    setDraftViewMode(mode);
+                    setDraftScope(
+                      user
+                        ? getDefaultDashboardScopeForMode(mode, user, teams)
+                        : defaultDashboardScopeValue,
+                    );
+                  }}
+                >
+                  <span className="block text-sm font-semibold text-white">
+                    {getDashboardViewModeLabel(mode)}
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-white/58">
+                    {getDashboardViewModeDescription(mode)}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-            <button
-              type="button"
-              className={cn(
-                "w-full rounded-2xl border px-4 py-4 text-left transition-colors",
-                draftScopeMode === "CUSTOM"
-                  ? "border-primary/70 bg-primary/18"
-                  : "border-white/12 bg-white/5 hover:bg-white/8",
-              )}
-              onClick={() => {
-                setDraftScopeMode("CUSTOM");
-                setDraftTeamScope(selectedCustomTeamScope);
-              }}
-            >
-              <span className="block text-sm font-semibold text-white">직접 선택 팀 기준</span>
-              <span className="mt-1 block text-xs leading-5 text-white/58">
-                사용자가 선택한 팀 하나를 기준으로 알림과 대시보드를 봅니다.
-              </span>
-            </button>
-
-            {draftScopeMode === "CUSTOM" ? (
+            {showScopeSelector ? (
               <div className="rounded-2xl border border-white/12 bg-black/10 p-4">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/50">
-                  Team
+                  Scope
                 </p>
                 <Select
                   className="h-11 rounded-xl border-white/12 bg-black/10 px-3 text-sm font-medium text-white/85 shadow-none focus-visible:border-white/18 focus-visible:ring-white/15"
-                  value={
-                    draftTeamScope !== allTeamsScopeValue
-                      ? draftTeamScope
-                      : selectedCustomTeamScope
-                  }
-                  options={availableDashboardTeams.map((team) => ({
-                    label: team.name,
-                    value: String(team.id),
-                  }))}
+                  value={normalizedDraftScope}
+                  options={draftScopeOptions}
+                  disabled={draftScopeOptions.length === 1}
                   onChange={(event) =>
-                    setDraftTeamScope(event.target.value as TeamScopeValue)
+                    setDraftScope(event.target.value as DashboardScopeValue)
                   }
-                  aria-label="직접 선택 팀"
+                  aria-label="대시보드 상세 범위"
                 />
               </div>
             ) : null}

@@ -15,6 +15,9 @@ import { EvaluationList } from "@/app/user/_components/EvaluationList";
 import { SkillEditor } from "@/app/user/_components/SkillEditor";
 import type { UserEvaluation } from "@/app/user/_types/user.types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+type UserEditTab = "profile" | "skills" | "evaluations";
 
 export default function UserEditPage() {
   const navigate = useNavigate();
@@ -22,6 +25,7 @@ export default function UserEditPage() {
   const { user: currentUser } = useAuth();
   const [revision, setRevision] = useState(0);
   const [evaluations, setEvaluations] = useState<UserEvaluation[]>([]);
+  const [activeTab, setActiveTab] = useState<UserEditTab>("profile");
   const user = useMemo(() => users.find((item) => item.id === Number(params.id)), [params.id, revision]);
   const showEvaluations = canViewEvaluations(currentUser);
   const allowWriteEvaluations = canWriteEvaluations(currentUser, user?.id);
@@ -41,6 +45,16 @@ export default function UserEditPage() {
     });
   }, [params.id]);
 
+  useEffect(() => {
+    if (activeTab === "skills" && !allowManageSkills) {
+      setActiveTab("profile");
+    }
+
+    if (activeTab === "evaluations" && !showEvaluations) {
+      setActiveTab("profile");
+    }
+  }, [activeTab, allowManageSkills, showEvaluations]);
+
   if (!user) return <div>사용자를 찾을 수 없습니다.</div>;
   if (!canEditUserProfile(currentUser, user.id)) {
     return (
@@ -59,31 +73,64 @@ export default function UserEditPage() {
   return (
     <>
       <PageHeader title={`${user.name} 수정`} />
-      <UserForm
-        initialValues={{
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          departmentId: user.departmentId,
-          teamIds: user.teamIds,
-          primaryTeamId: user.primaryTeamId,
-          position: user.position,
-          title: user.title,
-          phone: user.phone,
-          employmentStatus: user.employmentStatus,
-          joinDate: user.joinDate,
-          profileImage: user.profileImage,
-        }}
-        submitLabel="수정 저장"
-        onSubmit={async (values) => {
-          await userService.update(user.id, values);
-          navigate("/user");
-        }}
-      >
-        {allowManageSkills || showEvaluations ? (
-          <div className="grid gap-8 xl:grid-cols-2">
+      <Card className="rounded-[28px] border-border/70 bg-card/90 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.45)]">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-[20px] tracking-[-0.05em]">
+            사용자 정보 및 직책 설정
+          </CardTitle>
+          <CardDescription>
+            사용자 기본 정보, 스킬 조정, 관리자 평가를 하나의 탭 영역에서 관리합니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as UserEditTab)}
+            className="space-y-6"
+          >
+            <TabsList className="inline-flex h-auto w-full flex-col rounded-2xl bg-muted/40 p-1 sm:w-fit sm:flex-row">
+              <TabsTrigger value="profile" className="rounded-xl px-5 py-2.5">
+                사용자 정보
+              </TabsTrigger>
+              {allowManageSkills ? (
+                <TabsTrigger value="skills" className="rounded-xl px-5 py-2.5">
+                  스킬 설정
+                </TabsTrigger>
+              ) : null}
+              {showEvaluations ? (
+                <TabsTrigger value="evaluations" className="rounded-xl px-5 py-2.5">
+                  관리자 평가
+                </TabsTrigger>
+              ) : null}
+            </TabsList>
+
+            <TabsContent value="profile">
+              <UserForm
+                embedded
+                initialValues={{
+                  name: user.name,
+                  email: user.email,
+                  role: user.role,
+                  departmentId: user.departmentId,
+                  teamIds: user.teamIds,
+                  primaryTeamId: user.primaryTeamId,
+                  position: user.position,
+                  title: user.title,
+                  phone: user.phone,
+                  employmentStatus: user.employmentStatus,
+                  joinDate: user.joinDate,
+                  profileImage: user.profileImage,
+                }}
+                submitLabel="수정 저장"
+                onSubmit={async (values) => {
+                  await userService.update(user.id, values);
+                  navigate("/user");
+                }}
+              />
+            </TabsContent>
+
             {allowManageSkills ? (
-              <section className="space-y-4">
+              <TabsContent value="skills" className="space-y-4">
                 <div>
                   <h3 className="text-[18px] font-semibold tracking-[-0.04em] text-foreground">
                     스킬 설정
@@ -99,27 +146,29 @@ export default function UserEditPage() {
                     await userService.upsertSkill(user.id, skill);
                   }}
                 />
-              </section>
+              </TabsContent>
             ) : null}
 
             {showEvaluations ? (
-              <EvaluationList
-                evaluations={evaluations}
-                canWrite={allowWriteEvaluations}
-                embedded
-                onCreate={async (content) => {
-                  if (!currentUser) return;
-                  await userService.addEvaluation(user.id, currentUser.id, content);
-                }}
-                onUpdate={async (evaluationId, content) => {
-                  if (!currentUser) return;
-                  await userService.updateEvaluation(evaluationId, content);
-                }}
-              />
+              <TabsContent value="evaluations">
+                <EvaluationList
+                  evaluations={evaluations}
+                  canWrite={allowWriteEvaluations}
+                  embedded
+                  onCreate={async (content) => {
+                    if (!currentUser) return;
+                    await userService.addEvaluation(user.id, currentUser.id, content);
+                  }}
+                  onUpdate={async (evaluationId, content) => {
+                    if (!currentUser) return;
+                    await userService.updateEvaluation(evaluationId, content);
+                  }}
+                />
+              </TabsContent>
             ) : null}
-          </div>
-        ) : null}
-      </UserForm>
+          </Tabs>
+        </CardContent>
+      </Card>
     </>
   );
 }

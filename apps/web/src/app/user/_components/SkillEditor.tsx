@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -88,27 +87,19 @@ export function SkillEditor({
           등록된 스킬이 없습니다.
         </div>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {skills.map((skill) => {
             const level = Math.min(5, Math.max(1, skill.level));
 
             return (
-              <div key={skill.name} className="rounded-xl border border-border bg-card p-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div key={skill.name} className="rounded-xl border border-border bg-card px-3.5 py-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-[16px] font-semibold tracking-[-0.03em] text-foreground">
                         {skill.name}
                       </p>
-                      <Badge variant={skill.selfRated ? "outline" : "success"}>
-                        {skill.selfRated ? "자가 평가" : "관리자 조정"}
-                      </Badge>
-                    </div>
-                    <div className="mt-3 flex items-center gap-3">
-                      <div className="h-2 flex-1 rounded-full bg-muted">
-                        <div className="h-2 rounded-full bg-primary" style={{ width: `${level * 20}%` }} />
-                      </div>
-                      <span className="w-11 text-right text-sm font-semibold text-primary">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
                         Lv.{level}
                       </span>
                     </div>
@@ -118,7 +109,7 @@ export function SkillEditor({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="shrink-0"
+                      className="h-8 shrink-0 px-3"
                       onClick={() => openEditDialog(skill)}
                     >
                       수정

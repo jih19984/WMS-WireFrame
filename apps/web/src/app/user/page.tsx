@@ -227,7 +227,6 @@ export default function UserPage() {
                         { label: "전체 상태", value: "all" },
                         { label: getEmploymentStatusLabel("ACTIVE"), value: "ACTIVE" },
                         { label: getEmploymentStatusLabel("LEAVE"), value: "LEAVE" },
-                        { label: getEmploymentStatusLabel("INACTIVE"), value: "INACTIVE" },
                       ]}
                       onChange={(event) =>
                         setFilters((prev) => ({

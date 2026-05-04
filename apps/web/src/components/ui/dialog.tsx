@@ -11,6 +11,19 @@ export function Dialog({
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }) {
+  React.useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onOpenChange(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, onOpenChange]);
+
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(
@@ -18,7 +31,12 @@ export function Dialog({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
       onClick={() => onOpenChange(false)}
     >
-      <div onClick={(event) => event.stopPropagation()}>{children}</div>
+      <div
+        className="flex w-full max-w-[calc(100vw-2rem)] justify-center"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>,
     document.body,
   );

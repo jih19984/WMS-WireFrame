@@ -357,6 +357,21 @@ pre {
   background: color-mix(in srgb, var(--muted) 55%, transparent);
 }
 
+.schedule-date-input::-webkit-calendar-picker-indicator {
+  margin-inline-end: -2px;
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.schedule-date-input::-webkit-calendar-picker-indicator:hover {
+  border-color: color-mix(in srgb, var(--primary) 48%, var(--border));
+  background-color: color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
 .route-content-enter {
   animation: route-content-enter 240ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;

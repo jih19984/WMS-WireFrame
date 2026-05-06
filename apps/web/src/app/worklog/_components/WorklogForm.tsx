@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  CalendarDays,
+  ChevronRight,
   FileText,
   GitBranchPlus,
   RefreshCw,
@@ -17,6 +19,14 @@ import type { WorklogFormValues } from "@/app/worklog/_types/worklog.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -108,6 +118,9 @@ export function WorklogForm({
   const [dependencySearchOpen, setDependencySearchOpen] = useState(false);
   const [tagKeywordInput, setTagKeywordInput] = useState("");
   const [tagSearchOpen, setTagSearchOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<
+    "dependencies" | "settings" | "tags" | null
+  >(null);
   const createStatusOptions: WorklogFormValues["status"][] = [
     "PENDING",
     "IN_PROGRESS",
@@ -286,7 +299,7 @@ export function WorklogForm({
         });
       }}
     >
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(440px,0.9fr)]">
+      <div className="grid gap-5">
         <FormPanel
           eyebrow="WORK SUMMARY"
           title="핵심 정보"
@@ -308,7 +321,30 @@ export function WorklogForm({
               />
             </Field>
 
-            <Field label="요청/지시 내용">
+            <Field
+              label="요청/지시 내용"
+              actions={
+                <div className="flex flex-wrap items-center gap-2">
+                  <InlineActionButton
+                    icon={<GitBranchPlus className="size-3.5" />}
+                    label="선행 업무 선택"
+                    count={selectedDependencies.length}
+                    onClick={() => setActiveModal("dependencies")}
+                  />
+                  <InlineActionButton
+                    icon={<Settings2 className="size-3.5" />}
+                    label="작업 설정 열기"
+                    onClick={() => setActiveModal("settings")}
+                  />
+                  <InlineActionButton
+                    icon={<Tag className="size-3.5" />}
+                    label="태그 선택"
+                    count={selectedTags.length}
+                    onClick={() => setActiveModal("tags")}
+                  />
+                </div>
+              }
+            >
               <Textarea
                 value={values.requestContent}
                 onChange={(event) =>
@@ -375,70 +411,11 @@ export function WorklogForm({
               </Field>
             ) : null}
 
-            <div className="border-t border-border/70 pt-6">
-              <section className="rounded-[1.75rem] border border-border/70 bg-muted/20 p-5">
-                <div className="mb-4 flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                      FILES
-                    </p>
-                    <h3 className="mt-2 text-lg font-semibold text-foreground">
-                      첨부 파일
-                    </h3>
-                  </div>
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-background/70 text-primary">
-                    <Upload className="size-4" />
-                  </span>
-                </div>
-
-                <div className="rounded-2xl border border-border/70 bg-background/50 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">파일 업로드</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        업무와 관련된 문서, 이미지, 자료 파일을 첨부합니다.
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="h-10 rounded-2xl px-4"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload className="size-4" />
-                      파일 선택
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mt-3 space-y-2">
-                  {values.attachmentNames.length === 0 ? (
-                    <p className="rounded-2xl border border-dashed border-border/70 px-4 py-3 text-sm text-muted-foreground">
-                      아직 업로드된 파일이 없습니다.
-                    </p>
-                  ) : (
-                    values.attachmentNames.map((name) => (
-                      <div
-                        key={name}
-                        className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/50 px-4 py-3 text-sm"
-                      >
-                        <span className="min-w-0 truncate font-medium text-foreground">
-                          {name}
-                        </span>
-                        <button
-                          type="button"
-                          className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                          aria-label={`${name} 제거`}
-                          onClick={() => removeAttachmentName(name)}
-                        >
-                          <X className="size-4" />
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-            </div>
+            <AttachmentUploadSection
+              attachmentNames={values.attachmentNames}
+              onChooseFiles={() => fileInputRef.current?.click()}
+              onRemove={removeAttachmentName}
+            />
 
             <div className="flex justify-end border-t border-border/70 pt-6">
               <Button
@@ -452,7 +429,7 @@ export function WorklogForm({
           </div>
         </FormPanel>
 
-        <div className="space-y-5">
+        <div className="hidden">
           <FormPanel
             eyebrow="DEPENDENCIES"
             title="선행 업무"
@@ -803,6 +780,397 @@ export function WorklogForm({
         </div>
       </div>
 
+      <Dialog
+        open={activeModal === "dependencies"}
+        onOpenChange={(open) => setActiveModal(open ? "dependencies" : null)}
+      >
+        <DialogContent className="relative max-h-[86vh] max-w-3xl overflow-y-auto rounded-[28px] p-7">
+          <DialogHeader>
+            <DialogTitle>선행 업무</DialogTitle>
+            <DialogDescription>
+              현재 업무보다 먼저 완료되어야 하는 업무를 검색해서 연결합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-11 rounded-2xl pl-11"
+                  value={dependencyKeywordInput}
+                  onFocus={() => setDependencySearchOpen(true)}
+                  onBlur={() => {
+                    window.setTimeout(() => setDependencySearchOpen(false), 120);
+                  }}
+                  onChange={(event) => {
+                    setDependencyKeywordInput(event.target.value);
+                    setDependencySearchOpen(true);
+                  }}
+                  placeholder="제목, 요약, 담당자, 팀으로 검색"
+                />
+              </div>
+
+              {dependencySearchOpen && dependencyKeywordInput.trim() ? (
+                <div className="overflow-hidden rounded-2xl border border-border bg-popover p-2 shadow-[0_18px_48px_-28px_rgba(15,23,42,0.65)]">
+                  <div className="dashboard-scrollbar max-h-[260px] overflow-y-auto [scrollbar-gutter:stable]">
+                    {filteredDependencyCandidates.length === 0 ? (
+                      <p className="px-3 py-3 text-sm text-muted-foreground">
+                        조건에 맞는 선행 업무가 없습니다.
+                      </p>
+                    ) : (
+                      filteredDependencyCandidates.map((dependency) => {
+                        const teamName =
+                          teams.find((team) => team.id === dependency.teamId)?.name ?? "팀 미지정";
+
+                        return (
+                          <button
+                            key={dependency.id}
+                            type="button"
+                            className="block w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => addDependency(dependency.id)}
+                          >
+                            <span className="block text-sm font-semibold text-popover-foreground">
+                              {dependency.title}
+                            </span>
+                            <span className="mt-1 block text-xs text-muted-foreground">
+                              {teamName} / {getWorklogStatusLabel(dependency.status)}
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              {selectedDependencies.length === 0 ? (
+                <p className="rounded-2xl border border-dashed border-border/70 px-4 py-3 text-sm text-muted-foreground">
+                  선택한 선행 업무가 없습니다.
+                </p>
+              ) : (
+                selectedDependencies.map((dependency) => (
+                  <div
+                    key={dependency.id}
+                    className="flex items-start justify-between gap-3 rounded-2xl border border-border/70 bg-muted/25 px-4 py-3 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{dependency.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        현재 상태: {getWorklogStatusLabel(dependency.status)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      aria-label={`${dependency.title} 선행 업무 제거`}
+                      onClick={() => removeDependency(dependency.id)}
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {incompleteDependencies.length > 0 && values.status === "IN_PROGRESS" ? (
+              <p className="text-xs text-warning-foreground">
+                선행 업무가 아직 완료되지 않았습니다. 현재 와이어프레임에서는 경고만
+                하고 저장은 허용합니다.
+              </p>
+            ) : null}
+            {circularDependencyDetected ? (
+              <p className="text-xs text-destructive">
+                순환 의존성이 감지되었습니다. A → B → C → A 형태의 연결은 저장되지
+                않습니다.
+              </p>
+            ) : null}
+          </div>
+          <DialogFooter className="border-t border-border/70 pt-4">
+            <Button type="button" variant="outline" onClick={() => setActiveModal(null)}>
+              닫기
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={activeModal === "settings"}
+        onOpenChange={(open) => setActiveModal(open ? "settings" : null)}
+      >
+        <DialogContent className="relative max-h-[86vh] max-w-4xl overflow-y-auto rounded-[28px] p-7">
+          <DialogHeader>
+            <DialogTitle>작업 설정</DialogTitle>
+            <DialogDescription>
+              업무 상태, 담당자, 소요 시간과 진행 일정을 설정합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-5">
+            <Field label="상태 및 중요도">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select
+                  className={controlClassName}
+                  value={values.status}
+                  options={statusOptions.map((status) => ({
+                    label: getWorklogStatusLabel(status),
+                    value: status,
+                  }))}
+                  onChange={(event) =>
+                    setValues({
+                      ...values,
+                      status: event.target.value as WorklogFormValues["status"],
+                    })
+                  }
+                />
+                <Select
+                  className={controlClassName}
+                  value={values.importance}
+                  options={[
+                    { label: getImportanceLabel("URGENT"), value: "URGENT" },
+                    { label: getImportanceLabel("HIGH"), value: "HIGH" },
+                    { label: getImportanceLabel("NORMAL"), value: "NORMAL" },
+                    { label: getImportanceLabel("LOW"), value: "LOW" },
+                  ]}
+                  onChange={(event) =>
+                    setValues({
+                      ...values,
+                      importance: event.target.value as WorklogFormValues["importance"],
+                    })
+                  }
+                />
+              </div>
+              {isEditMode ? (
+                <div className="mt-3 space-y-2">
+                  <Textarea
+                    className="min-h-[96px] rounded-2xl px-4 py-3 text-base"
+                    value={values.statusChangeReason ?? ""}
+                    onChange={(event) =>
+                      setValues({
+                        ...values,
+                        statusChangeReason: event.target.value,
+                      })
+                    }
+                    placeholder="상태 변경 사유를 입력해주세요."
+                  />
+                  {statusChangedInEdit ? (
+                    <p className="text-xs text-muted-foreground">
+                      상태를 변경하면 사유가 상태 이력에 함께 기록됩니다.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </Field>
+
+            <Field label="담당자">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select
+                  className={controlClassName}
+                  value={String(values.teamId)}
+                  options={teamOptions}
+                  onChange={(event) =>
+                    setValues({ ...values, teamId: Number(event.target.value) })
+                  }
+                />
+                <Select
+                  className={controlClassName}
+                  value={String(values.authorId)}
+                  options={authorOptions}
+                  onChange={(event) =>
+                    setValues({ ...values, authorId: Number(event.target.value) })
+                  }
+                />
+              </div>
+            </Field>
+
+            <Field label="시간">
+              <div className="space-y-2">
+                <Input
+                  className={cn(
+                    controlClassName,
+                    actualHoursTouched && actualHoursError
+                      ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20"
+                      : "",
+                  )}
+                  type="number"
+                  min={0}
+                  step="any"
+                  inputMode="decimal"
+                  value={actualHoursInput}
+                  onBlur={() => setActualHoursTouched(true)}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    const nextError = getActualHoursError(nextValue);
+
+                    setActualHoursInput(nextValue);
+                    if (!nextError) {
+                      setValues((previous) => ({
+                        ...previous,
+                        actualHours: Number(nextValue.trim()),
+                      }));
+                    }
+                  }}
+                  placeholder="예: 1.5"
+                  aria-invalid={actualHoursTouched && actualHoursError ? true : undefined}
+                />
+                <p
+                  className={cn(
+                    "text-xs leading-5",
+                    actualHoursTouched && actualHoursError
+                      ? "text-destructive"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {actualHoursTouched && actualHoursError
+                    ? actualHoursError
+                    : "소수 입력이 가능합니다. 예: 1.5 = 1시간 30분"}
+                </p>
+              </div>
+            </Field>
+
+            <Field label="진행 일정">
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  숫자로 직접 수정하거나 입력칸의 달력 아이콘으로 선택할 수 있습니다.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+                  <ScheduleDateControl
+                    label="시작일"
+                    value={values.instructionDate}
+                    onChange={(nextValue) =>
+                      setValues({ ...values, instructionDate: nextValue })
+                    }
+                  />
+                  <span className="hidden text-center text-sm text-muted-foreground sm:block">
+                    ~
+                  </span>
+                  <ScheduleDateControl
+                    label="마감일"
+                    value={values.dueDate}
+                    onChange={(nextValue) => setValues({ ...values, dueDate: nextValue })}
+                  />
+                </div>
+              </div>
+            </Field>
+          </div>
+          <DialogFooter className="items-center justify-between border-t border-border/70 pt-4">
+            <p className="mr-auto text-xs text-muted-foreground">
+              변경 내용은 업무 등록 폼에 즉시 반영됩니다.
+            </p>
+            <Button type="button" variant="outline" onClick={() => setActiveModal(null)}>
+              닫기
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={activeModal === "tags"}
+        onOpenChange={(open) => setActiveModal(open ? "tags" : null)}
+      >
+        <DialogContent className="relative max-h-[86vh] max-w-3xl overflow-y-auto rounded-[28px] p-7">
+          <DialogHeader>
+            <DialogTitle>태그 등록</DialogTitle>
+            <DialogDescription>
+              업무에 직접 연결할 태그를 검색해서 선택합니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-11 rounded-2xl pl-11"
+                  value={tagKeywordInput}
+                  onFocus={() => setTagSearchOpen(true)}
+                  onBlur={() => {
+                    window.setTimeout(() => setTagSearchOpen(false), 120);
+                  }}
+                  onChange={(event) => {
+                    setTagKeywordInput(event.target.value);
+                    setTagSearchOpen(true);
+                  }}
+                  placeholder="태그명, 분류, 힌트로 검색"
+                />
+              </div>
+
+              {tagSearchOpen && tagKeywordInput.trim() ? (
+                <div className="overflow-hidden rounded-2xl border border-border bg-popover p-2 shadow-[0_18px_48px_-28px_rgba(15,23,42,0.65)]">
+                  <div className="dashboard-scrollbar max-h-[260px] overflow-y-auto [scrollbar-gutter:stable]">
+                    {filteredTagCandidates.length === 0 ? (
+                      <p className="px-3 py-3 text-sm text-muted-foreground">
+                        조건에 맞는 태그가 없습니다.
+                      </p>
+                    ) : (
+                      filteredTagCandidates.map((tag) => (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          className="block w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => addTag(tag.id)}
+                        >
+                          <span className="block text-sm font-semibold text-popover-foreground">
+                            #{tag.name}
+                          </span>
+                          <span className="mt-1 block text-xs text-muted-foreground">
+                            {tag.category} / {tag.usageCount}회 사용
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              {selectedTags.length === 0 ? (
+                <p className="rounded-2xl border border-dashed border-border/70 px-4 py-3 text-sm text-muted-foreground">
+                  선택한 태그가 없습니다. 저장 시 AI가 관련 태그를 자동으로 추가합니다.
+                </p>
+              ) : (
+                selectedTags.map((tag) => (
+                  <div
+                    key={tag.id}
+                    className="flex items-start justify-between gap-3 rounded-2xl border border-border/70 bg-muted/25 px-4 py-3 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "rounded-full px-3 py-1",
+                          getTagSourceBadgeClass(tag.source),
+                        )}
+                      >
+                        #{tag.name}
+                      </Badge>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {tag.category} / {tag.usageCount}회 사용
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      aria-label={`${tag.name} 태그 제거`}
+                      onClick={() => removeTag(tag.id)}
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <DialogFooter className="border-t border-border/70 pt-4">
+            <Button type="button" variant="outline" onClick={() => setActiveModal(null)}>
+              닫기
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <input
         ref={fileInputRef}
         type="file"
@@ -861,13 +1229,155 @@ function FormPanel({
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+  label,
+  actions,
+  children,
+}: {
+  label: string;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <div className="space-y-3">
-      <label className="inline-flex items-center gap-2 text-[15px] font-[600] text-foreground">
-        {label}
-      </label>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <label className="inline-flex items-center gap-2 text-[15px] font-[600] text-foreground">
+          {label}
+        </label>
+        {actions}
+      </div>
       <div>{children}</div>
     </div>
+  );
+}
+
+function ScheduleDateControl({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="group flex min-h-[76px] items-center gap-3 rounded-2xl border border-border/80 bg-background/75 px-4 py-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/5 hover:shadow-[0_16px_38px_-28px_rgba(30,58,138,0.8)] focus-within:border-primary/45 focus-within:ring-2 focus-within:ring-primary/15">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
+        <CalendarDays className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          {label}
+        </span>
+        <input
+          type="date"
+          className="schedule-date-input mt-1 h-10 w-full rounded-full border border-border/70 bg-background px-3 text-sm font-semibold text-foreground outline-none transition-colors [color-scheme:light] hover:border-primary/35 focus:border-primary dark:[color-scheme:dark]"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          aria-label={`${label} 날짜 입력`}
+        />
+      </span>
+    </label>
+  );
+}
+
+function AttachmentUploadSection({
+  attachmentNames,
+  onChooseFiles,
+  onRemove,
+}: {
+  attachmentNames: string[];
+  onChooseFiles: () => void;
+  onRemove: (name: string) => void;
+}) {
+  return (
+    <section className="rounded-[1.5rem] border border-border/70 bg-muted/20 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-background/70 text-primary">
+            <Upload className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-foreground">첨부파일</p>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                {attachmentNames.length}개
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              업무와 함께 제출할 문서나 이미지를 바로 확인합니다.
+            </p>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-9 rounded-2xl px-4 text-sm transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary hover:text-primary-foreground hover:shadow-[0_14px_34px_-22px_rgba(30,58,138,0.9)]"
+          onClick={onChooseFiles}
+        >
+          <Upload className="size-4" />
+          파일 선택
+        </Button>
+      </div>
+
+      <div className="mt-3">
+        {attachmentNames.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border/70 bg-background/35 px-4 py-3 text-sm text-muted-foreground">
+            아직 첨부된 파일이 없습니다.
+          </p>
+        ) : (
+          <div className="dashboard-scrollbar flex max-h-[132px] flex-col gap-2 overflow-y-auto pr-1 [scrollbar-gutter:stable]">
+            {attachmentNames.map((name) => (
+              <div
+                key={name}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/55 px-4 py-2.5 text-sm"
+              >
+                <span className="min-w-0 truncate font-medium text-foreground">
+                  {name}
+                </span>
+                <button
+                  type="button"
+                  className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  aria-label={`${name} 제거`}
+                  onClick={() => onRemove(name)}
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function InlineActionButton({
+  icon,
+  label,
+  count,
+  onClick,
+}: {
+  icon: ReactNode;
+  label: string;
+  count?: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="group inline-flex h-9 items-center gap-2 rounded-2xl border border-primary/25 bg-primary/10 px-3.5 text-xs font-semibold text-primary shadow-[0_12px_28px_-22px_rgba(30,58,138,0.85)] transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      onClick={onClick}
+      aria-label={`${label} 설정 모달 열기`}
+    >
+      {icon}
+      <span>{label}</span>
+      {count !== undefined ? (
+        <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] leading-none text-primary-foreground transition-colors group-hover:bg-primary-foreground group-hover:text-primary">
+          {count}개
+        </span>
+      ) : null}
+      <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+    </button>
   );
 }

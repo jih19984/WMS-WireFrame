@@ -63,13 +63,19 @@ function inferAiTagIds(
   const matchedTagIds = tags
     .filter((tag) => {
       if (selectedSet.has(tag.id)) return false;
+      if (tag.mergeState === "PENDING") return false;
 
       const tagName = tag.name.toLowerCase();
       return searchableText.includes(tagName);
     })
     .map((tag) => tag.id);
   const fallbackTagIds = tags
-    .filter((tag) => tag.source === "AI" && !selectedSet.has(tag.id))
+    .filter(
+      (tag) =>
+        tag.source === "AI" &&
+        tag.mergeState !== "PENDING" &&
+        !selectedSet.has(tag.id),
+    )
     .map((tag) => tag.id);
 
   return Array.from(new Set([...matchedTagIds, ...fallbackTagIds])).slice(0, 3);

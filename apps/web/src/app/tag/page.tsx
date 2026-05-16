@@ -26,8 +26,8 @@ export default function TagPage() {
                 title: "태그 상태",
                 content: [
                   <TagStateBadge key="ACTIVE" state="ACTIVE" />,
-                  <TagStateBadge key="REVIEW" state="REVIEW" />,
                   <TagStateBadge key="MERGE_CANDIDATE" state="MERGE_CANDIDATE" />,
+                  <TagStateBadge key="PENDING" state="PENDING" />,
                 ],
               },
             ]}

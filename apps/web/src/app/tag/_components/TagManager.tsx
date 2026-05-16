@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeftRight, RefreshCw, Search } from "lucide-react";
-import { usePagination } from "@/app/_common/hooks/usePagination";
-import { ConfirmDialog } from "@/app/_common/components/ConfirmDialog";
-import { Pagination } from "@/app/_common/components/Pagination";
+import { useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Plus, Search, X, XCircle } from "lucide-react";
 import { useTag } from "@/app/tag/_hooks/useTag";
 import { TagStateBadge } from "@/app/tag/_components/TagStateBadge";
 import { tagService } from "@/app/tag/_service/tag.service";
 import { getTagSourceBadgeClass } from "@/app/tag/_utils/tag-badge";
+import type { TagItem } from "@/app/tag/_types/tag.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CardContent } from "@/components/ui/card";
-import { CardSpotlight } from "@/components/ui/card-spotlight";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -20,296 +23,539 @@ const sourceLabelMap = {
   MANUAL: "수동 생성",
 } as const;
 
+type SearchMode = "candidate" | "target";
+type MergeProposal = {
+  target: TagItem;
+  candidates: TagItem[];
+  usageCount: number;
+};
+
 export function TagManager({ canManage }: { canManage: boolean }) {
   const { tags, refresh } = useTag();
-  const [query, setQuery] = useState("");
-  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
-  const [mergeTargetId, setMergeTargetId] = useState("");
-  const [mergeConfirmOpen, setMergeConfirmOpen] = useState(false);
-  const [mergePickerOpen, setMergePickerOpen] = useState(false);
-  const mergePickerRef = useRef<HTMLDivElement>(null);
+  const [selectedTargetId, setSelectedTargetId] = useState<number | null>(null);
+  const [candidateIdsByTarget, setCandidateIdsByTarget] = useState<
+    Record<number, number[]>
+  >({});
+  const [targetNameDrafts, setTargetNameDrafts] = useState<Record<number, string>>({});
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchMode, setSearchMode] = useState<SearchMode>("candidate");
+  const [tagQuery, setTagQuery] = useState("");
 
-  const mergeCandidates = tags.filter((tag) => tag.mergeState === "MERGE_CANDIDATE");
-  const reviewTags = tags.filter((tag) => tag.mergeState === "REVIEW");
+  const tagById = useMemo(
+    () => new Map(tags.map((tag) => [tag.id, tag] as const)),
+    [tags],
+  );
+  const pendingTags = tags.filter((tag) => tag.mergeState === "PENDING");
+  const activeTags = tags.filter((tag) => tag.mergeState === "ACTIVE");
 
-  const filteredTags = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+  useEffect(() => {
+    const nextCandidates = tags.reduce<Record<number, number[]>>((acc, tag) => {
+      if (tag.mergeState !== "MERGE_CANDIDATE" || !tag.mergeTargetId) return acc;
+      acc[tag.mergeTargetId] = [...(acc[tag.mergeTargetId] ?? []), tag.id];
+      return acc;
+    }, {});
 
-    return tags.filter((tag) => {
-      if (!normalizedQuery) return true;
+    setCandidateIdsByTarget((current) => {
+      const merged = { ...nextCandidates };
+      Object.entries(current).forEach(([targetId, ids]) => {
+        const numericTargetId = Number(targetId);
+        const target = tagById.get(numericTargetId);
+        if (!target || target.mergeState === "PENDING") return;
 
-      const searchableText = [
-        tag.name,
-        tag.category,
-        tag.reuseHint,
-        sourceLabelMap[tag.source],
-        tag.mergeState,
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchableText.includes(normalizedQuery);
+        merged[numericTargetId] = Array.from(
+          new Set([
+            ...(merged[numericTargetId] ?? []),
+            ...ids.filter((id) => tagById.has(id)),
+          ]),
+        ).filter((id) => id !== numericTargetId);
+      });
+      return merged;
     });
-  }, [query, tags]);
 
-  const tagPagination = usePagination(filteredTags, 6);
-  const pageTagIds = tagPagination.items.map((tag) => tag.id);
-  const selectedTags = filteredTags.filter((tag) => selectedTagIds.includes(tag.id));
-  const isAllCurrentPageSelected =
-    pageTagIds.length > 0 && pageTagIds.every((id) => selectedTagIds.includes(id));
+    setTargetNameDrafts((current) => {
+      const next = { ...current };
+      Object.keys(nextCandidates).forEach((targetId) => {
+        const numericTargetId = Number(targetId);
+        next[numericTargetId] = next[numericTargetId] ?? tagById.get(numericTargetId)?.name ?? "";
+      });
+      return next;
+    });
+  }, [tagById, tags]);
+
+  const proposals = useMemo<MergeProposal[]>(() => {
+    return Object.entries(candidateIdsByTarget)
+      .map(([targetId, candidateIds]) => {
+        const numericTargetId = Number(targetId);
+        const target = tagById.get(numericTargetId);
+        const candidates = candidateIds
+          .map((id) => tagById.get(id))
+          .filter((tag): tag is TagItem => Boolean(tag))
+          .filter((tag) => tag.mergeState !== "PENDING");
+
+        if (!target || candidates.length === 0) return null;
+
+        return {
+          target,
+          candidates,
+          usageCount: candidates.reduce((sum, tag) => sum + tag.usageCount, target.usageCount),
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item))
+      .sort((left, right) => right.candidates.length - left.candidates.length);
+  }, [candidateIdsByTarget, tagById]);
 
   useEffect(() => {
-    const visibleIds = new Set(filteredTags.map((tag) => tag.id));
-    setSelectedTagIds((current) => current.filter((id) => visibleIds.has(id)));
-  }, [filteredTags]);
-
-  useEffect(() => {
-    if (selectedTagIds.length < 2) {
-      setMergeTargetId("");
+    if (proposals.length === 0) {
+      setSelectedTargetId(null);
       return;
     }
 
-    if (!selectedTagIds.includes(Number(mergeTargetId))) {
-      setMergeTargetId(String(selectedTagIds[0]));
+    if (!selectedTargetId || !proposals.some((proposal) => proposal.target.id === selectedTargetId)) {
+      setSelectedTargetId(proposals[0].target.id);
     }
-  }, [mergeTargetId, selectedTagIds]);
+  }, [proposals, selectedTargetId]);
 
-  useEffect(() => {
-    if (!mergePickerOpen) return;
+  const selectedProposal =
+    proposals.find((proposal) => proposal.target.id === selectedTargetId) ?? null;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        mergePickerRef.current &&
-        !mergePickerRef.current.contains(event.target as Node)
-      ) {
-        setMergePickerOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [mergePickerOpen]);
-
-  const handleToggleSelect = (tagId: number, checked: boolean) => {
-    setSelectedTagIds((current) =>
-      checked ? Array.from(new Set([...current, tagId])) : current.filter((id) => id !== tagId),
+  const searchableTags = useMemo(() => {
+    const normalizedQuery = tagQuery.trim().toLowerCase();
+    const selectedCandidateIds = new Set(
+      selectedTargetId ? candidateIdsByTarget[selectedTargetId] ?? [] : [],
     );
+
+    return tags
+      .filter((tag) => {
+        if (tag.mergeState === "PENDING") return false;
+        if (tag.mergeState === "REVIEW") return false;
+        if (searchMode === "candidate" && tag.id === selectedTargetId) return false;
+        if (searchMode === "candidate" && selectedCandidateIds.has(tag.id)) return false;
+        if (searchMode === "target" && selectedCandidateIds.has(tag.id)) return false;
+
+        if (!normalizedQuery) return true;
+
+        return [tag.name, tag.category, tag.reuseHint, sourceLabelMap[tag.source]]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedQuery);
+      })
+      .slice(0, 8);
+  }, [candidateIdsByTarget, searchMode, selectedTargetId, tagQuery, tags]);
+
+  const openSearch = (mode: SearchMode) => {
+    setSearchMode(mode);
+    setTagQuery("");
+    setSearchOpen(true);
   };
 
-  const handleSelectCard = (tagId: number) => {
-    handleToggleSelect(tagId, !selectedTagIds.includes(tagId));
+  const addCandidate = (tagId: number) => {
+    if (!selectedTargetId) return;
+
+    setCandidateIdsByTarget((current) => ({
+      ...current,
+      [selectedTargetId]: Array.from(
+        new Set([...(current[selectedTargetId] ?? []), tagId]),
+      ),
+    }));
+    setSearchOpen(false);
   };
 
-  const handleToggleSelectAllCurrentPage = (checked: boolean) => {
-    setSelectedTagIds((current) => {
-      if (checked) {
-        return Array.from(new Set([...current, ...pageTagIds]));
-      }
+  const removeCandidate = (targetId: number, tagId: number) => {
+    setCandidateIdsByTarget((current) => ({
+      ...current,
+      [targetId]: (current[targetId] ?? []).filter((id) => id !== tagId),
+    }));
+  };
 
-      return current.filter((id) => !pageTagIds.includes(id));
+  const changeTarget = (nextTargetId: number) => {
+    if (!selectedTargetId || nextTargetId === selectedTargetId) return;
+
+    const currentCandidates = candidateIdsByTarget[selectedTargetId] ?? [];
+    const nextCandidates = Array.from(
+      new Set([...currentCandidates, selectedTargetId]),
+    ).filter((id) => id !== nextTargetId);
+
+    setCandidateIdsByTarget((current) => {
+      const next = { ...current };
+      delete next[selectedTargetId];
+      next[nextTargetId] = nextCandidates;
+      return next;
     });
+    setTargetNameDrafts((current) => ({
+      ...current,
+      [nextTargetId]: current[nextTargetId] ?? tagById.get(nextTargetId)?.name ?? "",
+    }));
+    setSelectedTargetId(nextTargetId);
+    setSearchOpen(false);
   };
 
-  const handleMerge = async () => {
-    if (selectedTagIds.length < 2 || !mergeTargetId) return;
-
-    await tagService.merge(selectedTagIds, Number(mergeTargetId));
+  const approveProposal = async (proposal: MergeProposal) => {
+    await tagService.approveMerge(
+      proposal.candidates.map((tag) => tag.id),
+      proposal.target.id,
+      targetNameDrafts[proposal.target.id] ?? proposal.target.name,
+    );
     await refresh();
-    setSelectedTagIds([]);
-    setMergeTargetId("");
-    setMergeConfirmOpen(false);
+  };
+
+  const rejectProposal = async (proposal: MergeProposal) => {
+    await tagService.rejectMerge(proposal.candidates.map((tag) => tag.id));
+    await refresh();
   };
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <CardSpotlight className="rounded-[24px] p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Total Tags</p>
-          <p className="mt-2 text-2xl font-semibold">{tags.length}</p>
-        </CardSpotlight>
-        <CardSpotlight className="rounded-[24px] p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Merge Candidates</p>
-          <p className="mt-2 text-2xl font-semibold">{mergeCandidates.length}</p>
-        </CardSpotlight>
-        <CardSpotlight className="rounded-[24px] p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Review Queue</p>
-          <p className="mt-2 text-2xl font-semibold">{reviewTags.length}</p>
-        </CardSpotlight>
+        <SummaryMetric label="승인 대기 후보" value={proposals.length} />
+        <SummaryMetric label="새벽 배치 대기" value={pendingTags.length} />
+        <SummaryMetric label="운영 태그" value={activeTags.length} />
       </div>
 
-      <div className="space-y-4">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
+        <section className="min-w-0 rounded-[24px] border border-border/70 bg-card/58 p-5">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-foreground">추천 병합 후보</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                유사 태그 묶음을 확인하고 체크 또는 X로 처리합니다.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 px-3 text-xs"
+              disabled={!canManage || !selectedProposal}
+              onClick={() => openSearch("candidate")}
+            >
+              <Plus className="size-3.5" />
+              후보 추가
+            </Button>
+          </div>
+
+          <div className="tag-bubble-stage">
+            {proposals.length > 0 ? (
+              proposals.map((proposal, index) => (
+                <MergeBubbleCard
+                  key={proposal.target.id}
+                  proposal={proposal}
+                  selected={selectedTargetId === proposal.target.id}
+                  draftName={targetNameDrafts[proposal.target.id] ?? proposal.target.name}
+                  canManage={canManage}
+                  index={index}
+                  onSelect={() => setSelectedTargetId(proposal.target.id)}
+                  onDraftNameChange={(value) =>
+                    setTargetNameDrafts((current) => ({
+                      ...current,
+                      [proposal.target.id]: value,
+                    }))
+                  }
+                  onApprove={() => approveProposal(proposal)}
+                  onReject={() => rejectProposal(proposal)}
+                  onRemoveCandidate={(tagId) => {
+                    setSelectedTargetId(proposal.target.id);
+                    removeCandidate(proposal.target.id, tagId);
+                  }}
+                  onChangeTarget={() => {
+                    setSelectedTargetId(proposal.target.id);
+                    openSearch("target");
+                  }}
+                />
+              ))
+            ) : (
+              <EmptyState message="검토할 추천 후보가 없습니다." />
+            )}
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-border/70 bg-muted/25 p-4 text-sm leading-6 text-muted-foreground">
+            승인 시 후보 태그는 `PENDING` 상태가 되고, 새벽 배치 전까지 LLM의
+            업무일지 태그 연결 후보에서 제외됩니다.
+          </div>
+        </section>
+
+        <aside className="space-y-4">
+          <section className="rounded-[24px] border border-border/70 bg-card/58 p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">배치 대기</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  승인 후 새벽 병합 대상입니다.
+                </p>
+              </div>
+              <Badge variant="warning">{pendingTags.length}건</Badge>
+            </div>
+
+            <div className="space-y-3">
+              {pendingTags.length > 0 ? (
+                pendingTags.map((tag) => (
+                  <div
+                    key={tag.id}
+                    className="rounded-2xl border border-border/70 bg-background/70 p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-medium text-foreground">#{tag.name}</p>
+                      <TagStateBadge state={tag.mergeState} />
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      병합 기준 #
+                      {tag.mergeTargetId ? tagById.get(tag.mergeTargetId)?.name ?? tag.mergeTargetId : "-"} ·
+                      LLM 후보 제외
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <EmptyState message="배치 대기 중인 태그가 없습니다." />
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-[24px] border border-border/70 bg-card/58 p-5">
+            <p className="text-sm font-semibold text-foreground">상태 기준</p>
+            <div className="mt-3 space-y-3 text-sm leading-6 text-muted-foreground">
+              <p>
+                <span className="font-medium text-foreground">추천 후보</span>는 유사
+                태그 묶음이 이미 만들어져 승인/반려만 필요한 상태입니다.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">배치 대기</span>는 승인
+                후 새벽 병합 전까지 자동 태깅에서 제외되는 상태입니다.
+              </p>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <TagSearchDialog
+        open={searchOpen}
+        mode={searchMode}
+        query={tagQuery}
+        tags={searchableTags}
+        onQueryChange={setTagQuery}
+        onOpenChange={setSearchOpen}
+        onSelect={(tagId) => {
+          if (searchMode === "candidate") {
+            addCandidate(tagId);
+            return;
+          }
+          changeTarget(tagId);
+        }}
+      />
+    </div>
+  );
+}
+
+function MergeBubbleCard({
+  proposal,
+  selected,
+  draftName,
+  canManage,
+  index,
+  onSelect,
+  onDraftNameChange,
+  onApprove,
+  onReject,
+  onRemoveCandidate,
+  onChangeTarget,
+}: {
+  proposal: MergeProposal;
+  selected: boolean;
+  draftName: string;
+  canManage: boolean;
+  index: number;
+  onSelect: () => void;
+  onDraftNameChange: (value: string) => void;
+  onApprove: () => void;
+  onReject: () => void;
+  onRemoveCandidate: (tagId: number) => void;
+  onChangeTarget: () => void;
+}) {
+  return (
+    <article
+      className={cn(
+        "tag-merge-bubble",
+        selected && "tag-merge-bubble-selected",
+      )}
+      style={{ animationDelay: `${index * 140}ms` }}
+    >
+      <button
+        type="button"
+        className="absolute inset-0 rounded-[34px]"
+        aria-label={`${proposal.target.name} 병합 후보 선택`}
+        onClick={onSelect}
+      />
+
+      <div className="relative z-10 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            병합될 태그
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <Input
+              value={draftName}
+              disabled={!canManage}
+              onFocus={onSelect}
+              onChange={(event) => onDraftNameChange(event.target.value)}
+              className="h-9 max-w-[240px] border-0 border-b border-border/70 bg-transparent px-0 text-base font-semibold shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 px-0 text-xs text-muted-foreground hover:bg-transparent hover:text-foreground"
+              disabled={!canManage}
+              onClick={onChangeTarget}
+            >
+              기준 변경
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 gap-2">
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="size-8 rounded-none border-0 bg-transparent p-0 text-rose-500 shadow-none hover:bg-transparent hover:text-rose-600 dark:text-rose-300 dark:hover:text-rose-200"
+            disabled={!canManage}
+            aria-label={`${proposal.target.name} 병합 반려`}
+            onClick={onReject}
+          >
+            <XCircle className="size-5" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="size-8 rounded-none border-0 bg-transparent p-0 text-primary shadow-none hover:bg-transparent hover:text-primary/80"
+            disabled={!canManage}
+            aria-label={`${proposal.target.name} 병합 승인`}
+            onClick={onApprove}
+          >
+            <CheckCircle2 className="size-5" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-5 flex flex-wrap gap-2">
+        {proposal.candidates.map((tag) => (
+          <span
+            key={tag.id}
+            className="tag-candidate-droplet"
+          >
+            #{tag.name}
+            <button
+              type="button"
+              className="text-muted-foreground transition-colors hover:text-destructive disabled:pointer-events-none disabled:opacity-40"
+              disabled={!canManage}
+              aria-label={`${tag.name} 후보 제거`}
+              onClick={() => onRemoveCandidate(tag.id)}
+            >
+              <X className="size-3.5" />
+            </button>
+          </span>
+        ))}
+      </div>
+
+      <div className="relative z-10 mt-5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <Badge variant="secondary">{proposal.candidates.length}개 후보</Badge>
+        <span>예상 사용량 {proposal.usageCount}회</span>
+      </div>
+    </article>
+  );
+}
+
+function SummaryMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card/58 p-4">
+      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-border/80 px-4 py-6 text-center text-sm text-muted-foreground">
+      {message}
+    </div>
+  );
+}
+
+function TagSearchDialog({
+  open,
+  mode,
+  query,
+  tags,
+  onQueryChange,
+  onOpenChange,
+  onSelect,
+}: {
+  open: boolean;
+  mode: SearchMode;
+  query: string;
+  tags: TagItem[];
+  onQueryChange: (value: string) => void;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (tagId: number) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[min(92vw,640px)] max-w-none">
+        <DialogHeader>
+          <DialogTitle>
+            {mode === "candidate" ? "후보 태그 추가" : "병합 기준 태그 변경"}
+          </DialogTitle>
+          <DialogDescription>
+            태그명, 분류, 재사용 힌트로 검색해서 선택합니다.
+          </DialogDescription>
+        </DialogHeader>
+
         <div className="relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            className="h-12 pl-11 pr-12"
-            placeholder="태그 이름, 분류, 상태, 힌트로 검색하세요"
+            onChange={(event) => onQueryChange(event.target.value)}
+            className="h-12 pl-11"
+            autoFocus
+            placeholder="태그 검색"
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2"
-            aria-label="검색어 초기화"
-            onClick={() => setQuery("")}
-          >
-            <RefreshCw className="size-4" />
-          </Button>
         </div>
 
-        <div className="worklog-divider-top" />
-
-        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          <span className="font-medium">표시 중인 태그</span>
-          <span className="text-lg font-semibold text-foreground">{filteredTags.length}개</span>
-
-          {canManage ? (
-            <label className="ml-4 inline-flex items-center gap-2 text-sm text-muted-foreground">
-              <Checkbox
-                checked={isAllCurrentPageSelected}
-                onChange={(event) => handleToggleSelectAllCurrentPage(event.target.checked)}
-              />
-              <span>현재 페이지 전체 선택</span>
-            </label>
-          ) : null}
-
-          {selectedTagIds.length > 0 ? (
-            <span className="text-sm font-medium text-foreground">선택 {selectedTagIds.length}개</span>
-          ) : null}
-
-          {canManage ? (
-            <div className="relative ml-auto flex flex-wrap items-center gap-2" ref={mergePickerRef}>
-              <Button
-                type="button"
-                variant="default"
-                className="h-11 min-w-32 px-5 text-sm font-semibold"
-                disabled={selectedTagIds.length < 2}
-                onClick={() => setMergePickerOpen((prev) => !prev)}
-              >
-                <ArrowLeftRight className="size-4" />
-                선택 태그 병합
-              </Button>
-              {mergePickerOpen ? (
-                <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-[260px] rounded-2xl border border-border bg-popover p-2 shadow-2xl">
-                  <p className="px-2 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    병합 기준 태그 선택
-                  </p>
-                  <div className="space-y-1">
-                    {selectedTags.map((tag) => (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-popover-foreground transition-colors hover:bg-muted"
-                        onClick={() => {
-                          setMergeTargetId(String(tag.id));
-                          setMergePickerOpen(false);
-                          setMergeConfirmOpen(true);
-                        }}
-                      >
-                        <span className="font-medium">#{tag.name}</span>
-                        <span className="text-xs text-muted-foreground">{tag.usageCount}회</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {tagPagination.items.map((tag) => {
-          const checked = selectedTagIds.includes(tag.id);
-
-          return (
-            <CardSpotlight
-              key={tag.id}
-              className={cn(
-                "rounded-[24px] border-border/75 transition-all duration-300 hover:-translate-y-1",
-                checked && "ring-2 ring-primary/60 ring-offset-2 ring-offset-background",
-              )}
-            >
+        <div className="mt-4 max-h-[360px] space-y-2 overflow-y-auto pr-1">
+          {tags.length > 0 ? (
+            tags.map((tag) => (
               <button
+                key={tag.id}
                 type="button"
-                className="block w-full text-left"
-                onClick={() => {
-                  if (!canManage) return;
-                  handleSelectCard(tag.id);
-                }}
+                className="flex w-full items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card/60 px-4 py-3 text-left transition-colors hover:border-primary/35 hover:bg-primary/8"
+                onClick={() => onSelect(tag.id)}
               >
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="font-medium">#{tag.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tag.category} / {tag.usageCount}회 사용
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <TagStateBadge state={tag.mergeState} />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "border px-2.5 py-0.5 font-medium",
-                        getTagSourceBadgeClass(tag.source),
-                      )}
-                    >
-                      {sourceLabelMap[tag.source]}
-                    </Badge>
-                    {tag.mergeTargetId ? (
-                      <Badge
-                        variant="outline"
-                        className="border-slate-300 bg-slate-100 text-slate-700 shadow-sm dark:border-slate-300/45 dark:bg-slate-200/12 dark:text-slate-100"
-                      >
-                        병합 대상 #{tag.mergeTargetId}
-                      </Badge>
-                    ) : null}
-                  </div>
-
-                  <div
-                    className={cn(
-                      "rounded-2xl border border-dashed p-3 text-sm",
-                      "border-border/60 bg-muted/25 text-muted-foreground",
-                    )}
+                <div>
+                  <p className="font-medium text-foreground">#{tag.name}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {tag.category} · {tag.usageCount}회 사용
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={cn("border px-2.5 py-0.5", getTagSourceBadgeClass(tag.source))}
                   >
-                    {tag.reuseHint}
-                  </div>
-                </CardContent>
+                    {sourceLabelMap[tag.source]}
+                  </Badge>
+                  <TagStateBadge state={tag.mergeState} />
+                </div>
               </button>
-            </CardSpotlight>
-          );
-        })}
-      </div>
+            ))
+          ) : (
+            <EmptyState message="검색 가능한 태그가 없습니다." />
+          )}
+        </div>
 
-      <Pagination
-        page={tagPagination.page}
-        totalPages={tagPagination.totalPages}
-        onPageChange={tagPagination.setPage}
-      />
-
-      <ConfirmDialog
-        open={mergeConfirmOpen}
-        onOpenChange={setMergeConfirmOpen}
-        title="선택한 태그를 병합할까요?"
-        description="선택한 여러 태그를 하나의 기준 태그로 통합합니다. 병합 후에는 대상 태그만 유지됩니다."
-        confirmText={`선택 ${selectedTagIds.length}개 병합`}
-        onConfirm={handleMerge}
-      >
-        {mergeTargetId ? (
-          <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm">
-            병합 기준 태그:{" "}
-            <span className="font-semibold text-foreground">
-              #{selectedTags.find((tag) => String(tag.id) === mergeTargetId)?.name}
-            </span>
-          </div>
-        ) : null}
-      </ConfirmDialog>
-    </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            닫기
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

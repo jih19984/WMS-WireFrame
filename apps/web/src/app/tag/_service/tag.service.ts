@@ -19,6 +19,49 @@ export const tagService = {
     notifyMockDb();
     return created;
   },
+  async approveMerge(tagIds: number[], targetId: number, targetName?: string) {
+    const selectedIds = Array.from(new Set(tagIds)).filter((id) => id !== targetId);
+    const target = tags.find((tag) => tag.id === targetId);
+
+    if (!target) {
+      throw new Error("병합 기준 태그를 찾을 수 없습니다.");
+    }
+
+    if (targetName?.trim()) {
+      target.name = targetName.trim();
+    }
+
+    selectedIds.forEach((id) => {
+      const tag = tags.find((item) => item.id === id);
+      if (!tag) return;
+
+      tag.mergeState = "PENDING";
+      tag.mergeTargetId = targetId;
+      tag.reuseHint =
+        "병합 승인 완료 상태입니다. 새벽 배치 전까지 LLM 자동 태깅 후보에서 제외됩니다.";
+    });
+
+    target.mergeState = "ACTIVE";
+    target.mergeTargetId = undefined;
+    target.reuseHint = "승인된 후보 태그가 새벽 배치에서 이 태그로 병합됩니다.";
+
+    notifyMockDb();
+    return target;
+  },
+  async rejectMerge(tagIds: number[]) {
+    const selectedIds = Array.from(new Set(tagIds));
+
+    selectedIds.forEach((id) => {
+      const tag = tags.find((item) => item.id === id);
+      if (!tag) return;
+
+      tag.mergeState = "REVIEW";
+      tag.mergeTargetId = undefined;
+      tag.reuseHint = "추천 병합 후보에서 반려되어 별도 검토 대상으로 남았습니다.";
+    });
+
+    notifyMockDb();
+  },
   async merge(tagIds: number[], targetId: number) {
     const selectedIds = Array.from(new Set(tagIds));
     const mergeIds = selectedIds.filter((id) => id !== targetId);

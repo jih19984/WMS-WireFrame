@@ -118,7 +118,7 @@ export interface TagRecord {
   usageCount: number;
   category: "AI" | "업무" | "기술" | "부서";
   source: "AI" | "MANUAL";
-  mergeState: "ACTIVE" | "REVIEW" | "MERGE_CANDIDATE";
+  mergeState: "ACTIVE" | "REVIEW" | "MERGE_CANDIDATE" | "PENDING";
   reuseHint: string;
   mergeTargetId?: number;
 }
@@ -710,6 +710,36 @@ export const tags: TagRecord[] = [
     reuseHint: "업무자동화 태그와 유사하여 병합 후보로 표시합니다.",
     mergeTargetId: 4,
   },
+  {
+    id: 8,
+    name: "업무 자동화",
+    usageCount: 6,
+    category: "업무",
+    source: "AI",
+    mergeState: "MERGE_CANDIDATE",
+    reuseHint: "띄어쓰기만 다른 업무자동화 계열 태그입니다.",
+    mergeTargetId: 4,
+  },
+  {
+    id: 9,
+    name: "요구사항 정의",
+    usageCount: 5,
+    category: "업무",
+    source: "AI",
+    mergeState: "MERGE_CANDIDATE",
+    reuseHint: "요구사항정의 태그와 동일 의미로 추정됩니다.",
+    mergeTargetId: 5,
+  },
+  {
+    id: 10,
+    name: "요건정의",
+    usageCount: 3,
+    category: "업무",
+    source: "MANUAL",
+    mergeState: "MERGE_CANDIDATE",
+    reuseHint: "요구사항정의와 같은 업무 단계 표현입니다.",
+    mergeTargetId: 5,
+  },
 ];
 
 export const files: FileRecord[] = [
@@ -1236,7 +1266,7 @@ let nextDepartmentId = 4;
 let nextTeamId = 21;
 let nextUserId = 13;
 let nextWorklogId = 1009;
-let nextTagId = 8;
+let nextTagId = 11;
 let nextFileId = 2008;
 let nextEvaluationId = 3;
 let nextStatusHistoryId = 5021;

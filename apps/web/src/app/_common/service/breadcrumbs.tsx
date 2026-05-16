@@ -40,7 +40,8 @@ export function resolveBreadcrumbs(pathname: string): BreadcrumbItem[] {
     "/file": [{ label: "파일" }],
     "/notification": [{ label: "알림" }],
     "/tag": [{ label: "태그" }],
-    "/profile": [{ label: "개인 계정" }],
+    "/my-page": [{ label: "마이페이지" }],
+    "/profile": [{ label: "마이페이지" }],
   };
 
   if (staticRoutes[cleanPath]) {
@@ -52,6 +53,14 @@ export function resolveBreadcrumbs(pathname: string): BreadcrumbItem[] {
       { label: "조직" },
       { label: "부서 관리", href: "/department" },
       { label: "부서 수정" },
+    ];
+  }
+
+  if (cleanPath.startsWith("/department/detail/")) {
+    return [
+      { label: "조직" },
+      { label: "부서 관리", href: "/department" },
+      { label: "부서 상세" },
     ];
   }
 

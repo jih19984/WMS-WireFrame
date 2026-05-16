@@ -235,30 +235,38 @@ export function GNB() {
   };
 
   return (
-    <header className="workspace-topbar sticky top-0 z-50 flex w-full items-center gap-4 border-b border-white/10 px-5 py-4 shadow-[0_16px_60px_-32px_rgba(0,0,0,0.55)] lg:px-8">
+    <header className="workspace-topbar sticky top-0 z-50 flex w-full items-center gap-4 border-b border-slate-200/80 px-4 py-4 text-slate-900 shadow-[0_16px_48px_-36px_rgba(15,23,42,0.18)] dark:border-white/10 dark:text-white dark:shadow-[0_16px_60px_-32px_rgba(0,0,0,0.55)] md:px-8">
       <div className="min-w-0 flex-1">
-        <div className="inline-flex items-center rounded border border-white/10 bg-black/10 px-2 py-0.5 text-[8px] font-medium uppercase tracking-[0.13em] text-white/65">
-          ibank AX 사업본부
+        <div className="inline-flex items-center rounded border border-slate-200/80 bg-slate-100/70 px-2 py-0.5 text-[8px] font-medium uppercase tracking-[0.13em] text-slate-500 dark:border-white/10 dark:bg-black/10 dark:text-white/65">
+          IBANK AX 사업본부
         </div>
         <nav
           aria-label="breadcrumb"
-          className="mt-2 flex flex-wrap items-center gap-1.5 text-[1.05rem] font-semibold tracking-[-0.04em] text-white"
+          className="mt-2 flex flex-wrap items-center gap-1.5 text-[1.05rem] font-semibold tracking-[-0.04em] text-slate-900 dark:text-white"
         >
           {breadcrumbs.map((item, index) => {
             const isCurrent = index === breadcrumbs.length - 1;
 
             return (
               <div key={`${location.pathname}-${index}`} className="flex items-center gap-1.5">
-                {index > 0 ? <ChevronRight className="size-4 text-white/42" /> : null}
+                {index > 0 ? (
+                  <ChevronRight className="size-4 text-slate-400 dark:text-white/42" />
+                ) : null}
                 {item.href && !isCurrent ? (
                   <Link
                     to={item.href}
-                    className="text-white/68 transition-colors hover:text-white"
+                    className="text-slate-500 transition-colors hover:text-slate-900 dark:text-white/52 dark:hover:text-white"
                   >
                     {item.label}
                   </Link>
                 ) : (
-                  <span className={isCurrent ? "text-white" : "text-white/68"}>
+                  <span
+                    className={
+                      isCurrent
+                        ? "text-slate-900 dark:text-white"
+                        : "text-slate-500 dark:text-white/52"
+                    }
+                  >
                     {item.label}
                   </span>
                 )}
@@ -274,7 +282,7 @@ export function GNB() {
           variant="outline"
           size="icon"
           onClick={toggleTheme}
-          className="border-white/12 bg-black/10 text-white/75 hover:bg-black/18 hover:text-white"
+          className="h-10 w-10 border-slate-200/80 bg-slate-100/80 text-slate-600 hover:bg-slate-200/70 hover:text-slate-900 dark:border-white/12 dark:bg-black/10 dark:text-white/75 dark:hover:bg-black/18 dark:hover:text-white"
           title="테마 전환"
         >
           {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
@@ -285,7 +293,7 @@ export function GNB() {
             type="button"
             variant="outline"
             onClick={() => setShowScopeSettings(true)}
-            className="inline-flex h-10 border-white/12 bg-black/10 px-3 text-white/82 hover:bg-black/18 hover:text-white"
+            className="inline-flex h-10 border-slate-200/80 bg-slate-100/80 px-3 text-slate-700 hover:bg-slate-200/70 hover:text-slate-900 dark:border-white/12 dark:bg-black/10 dark:text-white/82 dark:hover:bg-black/18 dark:hover:text-white"
             title={scopeButtonLabel}
           >
             <Settings2 className="size-4" />
@@ -301,16 +309,16 @@ export function GNB() {
               type="button"
               variant="outline"
               onClick={() => setShowNotifications((prev) => !prev)}
-              className="group h-10 border-white/12 bg-black/10 px-3 text-white/80 hover:bg-black/18"
+              className="group h-10 border-slate-200/80 bg-slate-100/80 px-3 text-slate-700 hover:bg-slate-200/70 hover:text-slate-900 dark:border-white/12 dark:bg-black/10 dark:text-white/80 dark:hover:bg-black/18"
             >
-              <div className="relative flex items-center justify-center text-white/72 transition-colors group-hover:text-white">
+              <div className="relative flex items-center justify-center text-slate-600 transition-colors group-hover:text-slate-900 dark:text-white/72 dark:group-hover:text-white">
                 <Bell className="size-4" />
                 {scopedUnreadCount > 0 ? (
                   <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary" />
                 ) : null}
               </div>
               <div className="hidden text-left md:block">
-                <p className="text-[13px] font-medium tracking-tight text-white/88">
+                <p className="text-[13px] font-medium tracking-tight text-slate-700 dark:text-white/88">
                   {scopedUnreadCount > 0 ? `${scopedUnreadCount} 알림` : "알림 센터"}
                 </p>
               </div>

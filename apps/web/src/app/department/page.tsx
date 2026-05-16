@@ -39,38 +39,47 @@ export default function DepartmentPage() {
       <div className="flex flex-col gap-5">
         <PageHeader
           title="부서 관리"
-          description="권한 범위 안의 부서 목록과 현재 부서 운영 규모를 한 화면에서 확인합니다."
+          description="관리 가능한 부서와 운영 현황을 확인합니다."
         />
 
         <div className="grid gap-4 md:grid-cols-3">
           <CardSpotlight className="rounded-[24px] p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Departments</p>
-            <p className="mt-2 text-lg font-semibold">{departments.length}개</p>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">부서</p>
+            <p className="mt-2 text-2xl font-semibold text-foreground">{departments.length}개</p>
           </CardSpotlight>
           <CardSpotlight className="rounded-[24px] p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Teams</p>
-            <p className="mt-2 text-lg font-semibold">{visibleTeams.length}개</p>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">팀</p>
+            <p className="mt-2 text-2xl font-semibold text-foreground">{visibleTeams.length}개</p>
           </CardSpotlight>
           <CardSpotlight className="rounded-[24px] p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Members</p>
-            <p className="mt-2 text-lg font-semibold">{visibleUsers.length}명</p>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">구성원</p>
+            <p className="mt-2 text-2xl font-semibold text-foreground">{visibleUsers.length}명</p>
           </CardSpotlight>
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
-              부서 목록
-            </h2>
-            {canManageDepartment ? (
-              <Button asChild variant="default" className={registrationButtonClassName}>
-                <Link to="/department/create">부서 등록</Link>
-              </Button>
-            ) : null}
+          <div className="border-t-2 border-foreground/70 pt-5">
+            <div className="space-y-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-[20px] font-semibold tracking-[-0.04em] text-foreground">
+                  부서 목록
+                </h2>
+                {canManageDepartment ? (
+                  <Button asChild variant="default" className={registrationButtonClassName}>
+                    <Link to="/department/create">부서 등록</Link>
+                  </Button>
+                ) : null}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  활성 팀이 남아 있는 부서는 삭제할 수 없습니다.
+                </p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  표시 중인 부서 {departmentPagination.items.length}개
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            부서 생성과 삭제 정책은 본부장 전용입니다. 삭제 제약은 현재 화면에서 정책 안내 문구로 표현합니다.
-          </p>
           <DepartmentList
             departments={departmentPagination.items}
             readOnly={!canManageDepartment}

@@ -5,6 +5,7 @@ import DashboardPage from "@/app/page";
 import LoginPage from "@/app/login/page";
 import SignupPage from "@/app/signup/page";
 import DepartmentPage from "@/app/department/page";
+import DepartmentDetailPage from "@/app/department/detail/[id]/page";
 import DepartmentCreatePage from "@/app/department/create/page";
 import DepartmentEditPage from "@/app/department/edit/[id]/page";
 import TeamPage from "@/app/team/page";
@@ -24,6 +25,7 @@ import FilePage from "@/app/file/page";
 import NotificationPage from "@/app/notification/page";
 import TagPage from "@/app/tag/page";
 import ProfilePage from "@/app/profile/page";
+import { Navigate } from "react-router-dom";
 
 const withProvider = (element: React.ReactNode) => <QueryProvider>{element}</QueryProvider>;
 
@@ -36,6 +38,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardPage /> },
       { path: "department", element: <DepartmentPage /> },
+      { path: "department/detail/:id", element: <DepartmentDetailPage /> },
       { path: "department/create", element: <DepartmentCreatePage /> },
       { path: "department/edit/:id", element: <DepartmentEditPage /> },
       { path: "team", element: <TeamPage /> },
@@ -54,7 +57,8 @@ export const router = createBrowserRouter([
       { path: "file", element: <FilePage /> },
       { path: "notification", element: <NotificationPage /> },
       { path: "tag", element: <TagPage /> },
-      { path: "profile", element: <ProfilePage /> }
+      { path: "my-page", element: <ProfilePage /> },
+      { path: "profile", element: <Navigate to="/my-page" replace /> }
     ]
   }
 ]);

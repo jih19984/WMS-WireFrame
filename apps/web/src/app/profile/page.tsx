@@ -206,7 +206,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-6 pb-10">
-      <PageHeader title="프로필" />
+      <PageHeader title="마이페이지" />
 
       <section className="registration-surface w-full max-w-[1480px] pb-10">
         <RegistrationFormPanel
